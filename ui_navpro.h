@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'navpro.ui'
 **
-** Created: Wed Mar 7 23:07:26 2012
+** Created: Fri May 4 19:44:54 2012
 **      by: Qt User Interface Compiler version 4.8.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -19,30 +19,30 @@
 
 QT_BEGIN_NAMESPACE
 
-class Ui_CtxPodGuiClass
+class Ui_NavProClass
 {
 public:
 
-    void setupUi(QWidget *CtxPodGuiClass)
+    void setupUi(QWidget *NavProClass)
     {
-        if (CtxPodGuiClass->objectName().isEmpty())
-            CtxPodGuiClass->setObjectName(QString::fromUtf8("CtxPodGuiClass"));
-        CtxPodGuiClass->resize(320, 240);
+        if (NavProClass->objectName().isEmpty())
+            NavProClass->setObjectName(QString::fromUtf8("NavProClass"));
+        NavProClass->resize(320, 240);
 
-        retranslateUi(CtxPodGuiClass);
+        retranslateUi(NavProClass);
 
-        QMetaObject::connectSlotsByName(CtxPodGuiClass);
+        QMetaObject::connectSlotsByName(NavProClass);
     } // setupUi
 
-    void retranslateUi(QWidget *CtxPodGuiClass)
+    void retranslateUi(QWidget *NavProClass)
     {
-        CtxPodGuiClass->setWindowTitle(QApplication::translate("CtxPodGuiClass", "CtxPodGui", 0, QApplication::UnicodeUTF8));
+        NavProClass->setWindowTitle(QApplication::translate("NavProClass", "NavPro", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };
 
 namespace Ui {
-    class CtxPodGuiClass: public Ui_CtxPodGuiClass {};
+    class NavProClass: public Ui_NavProClass {};
 } // namespace Ui
 
 QT_END_NAMESPACE
