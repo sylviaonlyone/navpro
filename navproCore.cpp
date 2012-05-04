@@ -49,7 +49,7 @@ navproCore::navproCore(int width, int height):
         }
     }
 
-    searchRoad();
+    //searchRoad();
     resize(width, height);
 }
 
@@ -71,24 +71,25 @@ void navproCore::init()
   pSourceProbeInput = new PiiProbeInput;
   pResultProbeInput = new PiiProbeInput;
   
-  pImageAnnotator = new PiiImageAnnotator;
-
   // 1. Create operations
   pEdgeDetector = pEngine->createOperation("PiiEdgeDetector");
   pHoughTransform = pEngine->createOperation("PiiHoughTransformOperation");
   pImageFileReader = pEngine->createOperation("PiiImageFileReader");
+  pImageAnnotator = pEngine->createOperation("PiiImageAnnotator");
 
   // 2. Set operation properties 
 
   //Operation: PiiImageFileReader
   pImageFileReader->setProperty("imageType", "GrayScale");
-  pImageFileReader->setProperty("fileNamePattern", QString("debug/*.jpg"));
+  pImageFileReader->setProperty("fileNamePattern", QString("/home/minelab/share/road.jpg"));
 
   //Operation: PiiEdgeDetector
   pEdgeDetector->setProperty("detector", "CannyDetector");
 
   //Operation: PiiHoughTransformOperation
-  pHoughTransform->setProperty("TransformType", "Linear");
+  pHoughTransform->setProperty("type", "Linear");
+
+  pImageAnnotator->setProperty("annotationType", "Line");
  
   // 3. Connnect Output->Input
 
@@ -106,7 +107,7 @@ void navproCore::init()
   // |EdgeDetector.edges| -> | ResultProbeInput  |
   // |-------------------------------------------|
   pSourceProbeInput->connectOutput(pImageFileReader->output("image"));
-  pResultProbeInput->connectOutput(pEdgeDetector->output("edges"));
+  //pResultProbeInput->connectOutput(pEdgeDetector->output("edges"));
 
   // |---------------------------------------------------------|
   // |    Output of            | as | Input of                 |
@@ -115,8 +116,10 @@ void navproCore::init()
   // |HoughTransfor.coordinates| -> | ImageAnnotator.annotation|
   // |ImageAnnotator.annotation| -> | ResultProbeInput         |
   // |---------------------------------------------------------|
+  //pImageFileReader->connectOutput("image", pImageAnnotator, "image");
   pEdgeDetector->connectOutput("edges", pHoughTransform, "image");
-  pHoughTransform->connectOutput("coordinates", pImageAnnotator, "annotation");
+  pEdgeDetector->connectOutput("edges", pImageAnnotator, "image");
+  //pHoughTransform->connectOutput("coordinates", pImageAnnotator, "annotation");
   pResultProbeInput->connectOutput(pImageAnnotator->output("image"));
 
   // 4. Connnect SourceProbeInput, ResultProbeInput to display
@@ -179,5 +182,4 @@ void navproCore::searchRoad()
 {
   // Create Hough transform operation
   pImageFileReader->connectOutput("image", pEdgeDetector, "image");
-
 }
