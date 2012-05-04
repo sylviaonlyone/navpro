@@ -32,7 +32,6 @@
 #include <PiiEngine.h>
 #include <PiiImageDisplay.h>
 #include <PiiProbeInput.h>
-#include <PiiImageAnnotator.h>
 //#define DEBUG_LOG
 /*
 const static int TOLERANT_COLOR_DEVIATION = 20;
@@ -149,8 +148,8 @@ private:
   PiiOperation *pImageFileReader;
   PiiOperation *pEdgeDetector;
   PiiOperation *pHoughTransform;
+  PiiOperation *pImageAnnotator;
   PiiImageDisplay *pSourceImageDisplay;
   PiiImageDisplay *pResultImageDisplay;
-  PiiImageAnnotator *pImageAnnotator;
   QHBoxLayout *pLayout;
 };
