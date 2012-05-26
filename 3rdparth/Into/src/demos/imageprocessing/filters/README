@@ -1,0 +1,8 @@
+Image Filters
+
+This program demonstrates image filtering with some prebuilt filters. 
+It allows the user to change the type of the filter, its size, and the
+method of handling image borders. One of the distinguishing features
+of Into is that it automatically optimizes separable filters. In many
+cases, it will be able to simplify two-dimensional filtering to two
+one-dimensional passes.

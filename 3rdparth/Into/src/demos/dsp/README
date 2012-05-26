@@ -1,0 +1,6 @@
+DSP
+
+Digital signal processing techniques such as correlation and
+convolution are an essential part of many higher-level operations, for
+example image filtering. The dsp plug-in in Into provides many
+standard signal processing tools, some of which are demonstrated here.

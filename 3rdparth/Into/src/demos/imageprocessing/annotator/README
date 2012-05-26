@@ -1,0 +1,9 @@
+Image Annotator
+
+A program that draws user-defined graphics primitives on an image. 
+Supported annotations include text, points, lines, rectangles,
+ellipses, and circles. The PiiImageAnnotator operation can be used to
+automatically annotate processing results such as detected objects in
+images.
+
+

@@ -1,0 +1,12 @@
+Image Unwarp
+
+Reads in a picture of cylinder and unwarps it. The result shows the
+surface of the cylinder as if it was straightened. You need to
+manually select the area to be unwarped.
+
+Note 1: The cylinder (such as a pole) is assumed to be vertical in
+images. You need to frame the cylinder with the mouse.
+
+Note 2: This demonstration does not account for barrel distortion. If
+the picture is taken with a wide-angle lens, the result will not be
+rectangular.

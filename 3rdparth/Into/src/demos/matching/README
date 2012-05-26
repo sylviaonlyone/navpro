@@ -1,0 +1,7 @@
+Matching
+
+Matching is needed in applications such as 3-D reconstruction, stereo
+imaging and object detection. Into comes with a matching framework
+that makes it easy to implement many different types of matching
+algorithms. The programs in this folder show some applications of the
+framework.

@@ -1,0 +1,77 @@
+Enabling avcodec support on Linux
+
+For AMD64 architectures latest ffmpeg version does not link correctly
+because of a GNU linker bug. You must compile ffmpeg sources without
+mmx and mmx2-libraries.
+
+$ cd ffmpeg-src-dir
+$ ./configure --prefix=/path/to/install/dir --disable-mmx --disable-mmx2
+$ make && make install
+
+Again note: if some reason above does not work try this combination (disable all optimizations)
+
+$ cd ffmpeg-src-dir
+$./configure --prefix/path/to/install/dir --disable-mmx --disable-altivec --disable-mmx2
+--disable-ssse3 --disable-armv5te --disable-armv6 --disable-armvfp --disable-iwmmxt --disable-mmi
+--disable-neon --disable-vis --extra-cflags=-fPIC
+$ make && make install
+
+
+
+Enabling avcodec support on Windows
+
+(Omitting explanations, just follow the instructions.)
+
+Check out latest ffmpeg source at svn://svn.ffmpeg.org/ffmpeg/trunk.
+From now on, it will be assumed that the checkout folder is C:/ffmpeg.
+
+Go to www.mingw.org and find the download area. Install latest
+versions of
+1. mingw
+2. msys
+3. bash
+4. coreutils
+5. GNU Make
+
+Installation order is important.
+
+Create a file called config.sh to C:\ffmpeg:
+
+#!/bin/sh
+./configure --enable-memalign-hack --enable-static --disable-shared --disable-ffmpeg --disable-ffplay --disable-ffserver --extra-cflags="-fno-common"
+
+Configure and build ffmpeg:
+
+$ cd /c/ffmpeg
+$ ./config.sh
+$ mingw32-make
+
+Copy libavXXX/libavXXX.a to 3rdparty/avcodec/lib, where XXX is in
+(codec, format, util).
+
+Open Qt command prompt and build the conversion library:
+
+$ cd 3rdparty/avcodec/conversion
+$ qmake -spec win32-g++
+$ mingw32-make
+
+Copy header files from c:/ffmpeg/libavXXX to corresponding directories
+under 3rdparty/avcodec/include.
+
+
+Go to msys installation root and find the following files:
+- libcoldname.a
+- libmingwex.a
+- libmsvcrt.a
+- libwsock32.a
+- libgcc.a
+
+The first four should be in /lib. The last one should be in
+/mingw/lib/gcc/mingw32/x.y.z/, where x.y.z is compiler version number.
+Find out the version number of your compiler with "g++ --version".
+
+Copy the files to 3rdparty/avcodec/lib.
+
+Finally, compile the video plug-in. It links statically to the
+libraries copied to 3rdparty/avcodec/lib and thus needs no extra dlls
+at run time.

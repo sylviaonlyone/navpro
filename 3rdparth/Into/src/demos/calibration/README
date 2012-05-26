@@ -1,0 +1,7 @@
+Camera Calibration
+
+Camera calibration is required in applications where accurate
+measurements are to be made of real-world objects. Calibration is also
+needed for operations such as aligning cameras for stereo imaging. The
+demonstration programs in this folder show a few of the calibration
+functions available in Into.

@@ -1,0 +1,7 @@
+Filesystem Watcher
+
+This program sleeps until a new file appears in its working directory. 
+While an image is being written to the directory, the program waits
+until it doesn't change any more, and subsequently sends it to
+analysis. In this case, the "analysis" just shows the image in the
+main window.

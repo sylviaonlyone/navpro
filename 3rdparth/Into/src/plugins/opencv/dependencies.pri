@@ -1,0 +1,2 @@
+DEPENDENCIES = Image
+EXTENSIONS = opencv

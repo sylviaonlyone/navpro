@@ -1,0 +1,2 @@
+DEPENDENCIES = Dsp 
+EXTENSIONS = fast

@@ -1,0 +1,14 @@
+Copyright (c) 1980-2007, Jorge Nocedal.
+
+Contributors:
+    * Sergey Bochkanov (ALGLIB project). Translation from FORTRAN to
+      pseudocode.
+
+This software is freely available for educational or commercial  purposes.
+We expect that all publications describing work using this software  quote
+at least one of the references given below:
+    * J. Nocedal. Updating  Quasi-Newton  Matrices  with  Limited  Storage
+      (1980), Mathematics of Computation 35, pp. 773-782.
+    * D.C. Liu and J. Nocedal. On the  Limited  Memory  Method  for  Large
+      Scale  Optimization  (1989),  Mathematical  Programming  B,  45,  3,
+      pp. 503-528.

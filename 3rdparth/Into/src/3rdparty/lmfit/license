@@ -1,0 +1,14 @@
+lmfit
+
+Solves or minimizes the sum of squares of m nonlinear
+functions of n variables.
+
+From public domain Fortran version
+of Argonne National Laboratories MINPACK
+    argonne national laboratory. minpack project. march 1980.
+    burton s. garbow, kenneth e. hillstrom, jorge j. more
+C translation by Steve Moshier
+Joachim Wuttke converted the source into C++ compatible ANSI style
+and provided a simplified interface
+
+Public Domain

@@ -1,0 +1,6 @@
+Channel Splitter
+
+A program that splits color images into three channels. The program
+reads in a color image and displays the three color channels in
+separate frames.
+

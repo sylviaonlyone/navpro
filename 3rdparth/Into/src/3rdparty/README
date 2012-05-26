@@ -1,0 +1,56 @@
+This directory contains 3rd party modules that can be conditionally
+enabled and disabled at build time.
+
+IMPORTANT NOTE
+
+THIRD PARTY EXTENSIONS MUST BE EVALUATED FOR QUALITY AND LICENSE
+COMPATIBILITY! IT IS STRICTLY PROHIBITED TO INCLUDE CODE THAT HAS NOT
+BEEN VALIDATED. ALL EXTENSIONS MUST HAVE THEIR LICENSE TERMS STORED IN
+A FILE CALLED license (ALL LOWER CASE) IN THE EXTENSION FOLDER.
+
+
+Code that depends on or can make use of a 3rd party extension should
+check the existence of the extension in the project. This process is
+largely automated (example taken from visualization plug-in):
+
+PLUGIN = Visualization
+EXTENSIONS = qwt
+include(../piiplugin.pri)
+
+If the component depends on multiple extensions, separate them with
+spaces.
+
+The build system checks that the qwt component isn't explicitly
+disabled and that it really exists. A 3rd party extension exists if
+a) there is a folder called 3rdparty/X/include under the source root
+b) the 3rdparty/X folder contains header files.
+X is the name of the component, in this case "qwt".
+
+If the file 3rdparty/X/config.pri exists, it will be included into
+project settings. This makes it possible to add custom compiler/linker
+options. 3rdparty/X/include will be automatically added to include
+path, and 3rdparty/X/lib to library search path. Furthermore, if there
+is a folder called X under the current build directory (e.g. 
+plugins/visualization/qwt), it will get special treatment:
+
+1. if there is a file called config.pri in this folder, it will be
+included in project settings.
+
+2. If config.pri does not exist, all source (.cc) and header (.h)
+files will be included into the project.
+
+If the extension is explicitly disabled or cannot be found, PII_NO_X
+(e.g. PII_NO_QWT) will be added to defines. Qmake will also display a
+warning message.
+
+To compile the plug-in without qwt support, type
+
+$ make clean
+$ qmake DISABLE=qwt
+$ make
+
+In a source file, you may protect qwt-dependent parts like this:
+
+#ifndef PII_NO_QWT
+#  include "qwt/PiiQwtExploiter.h"
+#endif

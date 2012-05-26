@@ -1,0 +1,9 @@
+Networking
+
+Into comes with an easy-to-use, extensible networking library. The
+framework can be used to implement many kinds of protocols, but the
+current implementation is mainly focused on HTTP. Into uses HTTP to
+implement network-transparent distributed applications.
+
+The programs in this folder demonstrate different aspects of the
+networking library.

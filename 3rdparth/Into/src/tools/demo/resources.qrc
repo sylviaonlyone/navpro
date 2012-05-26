@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/images" >
+        <file alias="default.png" >images/default.png</file>
+    </qresource>
+    <qresource prefix="/icons" >
+        <file alias="folder.png" >icons/folder.png</file>
+        <file alias="system-run.png" >icons/system-run.png</file>
+        <file alias="go-previous.png" >icons/go-previous.png</file>
+        <file alias="application-exit.png" >icons/application-exit.png</file>
+    </qresource>
+</RCC>

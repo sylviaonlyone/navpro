@@ -1,0 +1,5 @@
+Colors
+
+The programs in this folder demonstrate color handling functions such
+as color space conversions, gamma correction, separating color
+channels, and normalizing them.

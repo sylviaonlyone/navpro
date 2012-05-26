@@ -1,0 +1,7 @@
+Corner Detector
+
+Corner detectors are useful in many image processing applications. 
+They can serve as the first step in keypoint recognition, which plays
+a major role in template and stereo matching. This program
+demonstrates the FAST corner detector, which, as the name implies,
+works at video frame rates while providing good accuracy.

@@ -1,0 +1,16 @@
+Into Demos
+
+This folder contains a number of small programs that each demonstrate
+a tiny part of the Into framework. The demonstration programs are not
+useful applications as such, but work merely as tutorials on how to
+exploit the functionality of the platform.
+
+Into is designed for real-time processing of data, and most of the
+demonstrations are implicitly multi-threaded. Please note however that
+the purpose of the demonstrations is to visualize some functionality
+and they are usually not optimized for best analysis speed.
+
+The demo programs still lack documentation. The documentation links
+are going to open a documentation page specific to each demonstration. 
+For the time being, however, you'll be redirected to a search page
+instead.

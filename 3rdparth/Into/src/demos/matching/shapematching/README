@@ -1,0 +1,9 @@
+Shape Based Matching
+
+This program matches objects based on their shape, in this case the
+outer and inner boundaries of the object. The program displays a
+rotating image that contains objects to be detected in different
+scales and orientations, overlapping each other. The images are
+matched to a model database in a rotation and (to a certain degree)
+scale invariant manner in real time. To extract the objects, this
+demonstration uses a static gray-level threshold.

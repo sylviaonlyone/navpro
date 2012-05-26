@@ -1,0 +1,18 @@
+LIBRARY "pylonwrapper.dll"
+EXPORTS
+genicam_close_device@4
+genicam_deregister_framebuffers@4
+genicam_get_property@12
+genicam_grab_frame@12
+genicam_initialize@0
+genicam_list_cameras@8
+genicam_next_camera@4
+genicam_open_device@8
+genicam_register_framebuffers@12
+genicam_requeue_buffers@4
+genicam_set_property@12
+genicam_start_capture@4
+genicam_stop_capture@4
+genicam_terminate@0
+genicam_free@4
+genicam_last_error@0

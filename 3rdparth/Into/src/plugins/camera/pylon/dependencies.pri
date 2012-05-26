@@ -1,0 +1,2 @@
+DEPENDENCIES = Camera
+EXTENSIONS = pylon

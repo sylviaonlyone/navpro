@@ -1,0 +1,6 @@
+Image Cropper
+
+A program that lets the user to select a sub-area of an image to be
+processed. This program demonstrates how smaller parts of a big image
+can be used in processing. Note that the sub-image will not be copied;
+Into automatically shares the memory of the original image.

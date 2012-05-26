@@ -1,0 +1,5 @@
+Labeling
+
+Labeling is a way of separating out connected components in binary
+images. This program finds and frames connected black components in
+images. Feed it with a text document, for example.

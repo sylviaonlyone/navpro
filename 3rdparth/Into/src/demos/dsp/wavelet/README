@@ -1,0 +1,8 @@
+Wavelet Transform
+
+The discrete wavelet transform is a way of recursively decomposing an
+input signal into orthogonal components. In one dimension, the
+decomposition is performed with a pair of high-pass/low-pass filters
+that are scaled and translated. In two dimensions, the decomposition
+is done in both directions. This program demonstrates one level
+of a two-dimensional wavelet decomposition.

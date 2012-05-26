@@ -1,0 +1,11 @@
+Boundary Finder
+
+Boundaries of detected objects are useful in matching shapes of
+objects. A prerequisite is that the objects are first successfully
+separated from background. This is most often done with tresholding,
+which is what this demonstration does.
+
+The thresholding technique in use is an adaptive algorithm that
+changes the threshold based on local image properties. The result is
+inverted so that dark areas are regarded as pixels of the target
+objects.

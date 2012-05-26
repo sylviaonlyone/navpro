@@ -1,0 +1,8 @@
+Image Processing
+
+Image processing may be the most important application area of Into. 
+The built-in image processing functionality consists of most textbook
+algorithms such as gray-level normalization, thresholding, binary
+morphology, labeling, filtering, edge detection etc. The programs in
+this folder demonstrate some of the image built-in image processing
+algorithms.

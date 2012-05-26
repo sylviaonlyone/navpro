@@ -1,0 +1,9 @@
+Geometric Transforms
+
+Geometric image transforms are a way of computationally altering an
+image to look as if it was taken from a different position. Into
+supports free affine transforms, of which this program demonstrates
+rotation and scaling. Note that this is a demonstration program that
+re-reads the input image from disk whenever you change the parameters
+and applies scaling and rotation in sequence instead of with in one
+pass. This significantly slows down the calculations.

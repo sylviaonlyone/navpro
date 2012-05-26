@@ -1,0 +1,7 @@
+Fourier Transform
+
+The Fourier transform is a way of representing an input signal as a
+sum of sine waves. This program demonstrates the two-dimensional
+Discrete Fourier Transform applied on an image. It shows the power
+spectrum of an input image. Try it with regular patterns to see peaks
+in the result.
