@@ -4,7 +4,7 @@ QT += core \
     gui \
     sql
 
-INTODIR=/home/oasis/dev/Into/2.0.0-beta-2/src
+INTODIR=$$PWD/3rdparth/Into/src
 INCLUDEPATH += $$INTODIR/../include
 include($$INTODIR/base.pri)
 
@@ -16,6 +16,7 @@ include($$INTODIR/base.pri)
 QMAKE_CFLAGS += -Werror
 QMAKE_CXXFLAGS += -Werror -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual
 
+RESOURCES += navpro.qrc
 HEADERS += navproCore.h
 SOURCES += main.cpp \
            navproCore.cpp

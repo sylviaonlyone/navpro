@@ -82,7 +82,7 @@ template <class T> struct PiiNameValuePair
   }
   
   const char* name;
-  mutable T& value;
+  T& value;
 };
 
 namespace PiiSerialization

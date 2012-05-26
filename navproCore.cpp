@@ -61,6 +61,7 @@ void navproCore::init()
   try
   {
       pEngine->loadPlugin("piiimage"); // PiiImageFileReader/Writer and PiiThresholdingOperation
+      pEngine->loadPlugin("piitransforms"); // PiiHoughTransformOperation
   }
   catch (PiiLoadException& ex)
   {
@@ -81,7 +82,7 @@ void navproCore::init()
 
   //Operation: PiiImageFileReader
   pImageFileReader->setProperty("imageType", "GrayScale");
-  pImageFileReader->setProperty("fileNamePattern", QString("/home/minelab/share/road.jpg"));
+  pImageFileReader->setProperty("fileNamePattern", QString(":/images/dummy_road.jpg"));
 
   //Operation: PiiEdgeDetector
   pEdgeDetector->setProperty("detector", "CannyDetector");

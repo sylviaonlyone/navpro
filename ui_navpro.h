@@ -1,8 +1,8 @@
 /********************************************************************************
 ** Form generated from reading UI file 'navpro.ui'
 **
-** Created: Fri May 4 19:44:54 2012
-**      by: Qt User Interface Compiler version 4.8.0
+** Created: Sat May 26 20:41:12 2012
+**      by: Qt User Interface Compiler version 4.8.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/

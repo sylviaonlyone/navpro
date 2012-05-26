@@ -98,7 +98,7 @@ template <class T> struct PiiBaseClass
     PiiSerialization::serialize(archive, derived, iBaseClassVersion);
   }
 
-  mutable T& derived;
+  T& derived;
 };
 
 PII_SERIALIZATION_TRACKING_TEMPLATE(PiiBaseClass, false);
