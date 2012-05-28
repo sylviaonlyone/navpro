@@ -104,24 +104,25 @@ void navproCore::init()
   // |-------------------------------------------|
   // |    Output of     | as | Input of          |
   // |-------------------------------------------|
-  // |FileReader.image  | -> | SourceProbeInput  |
+  // |Annotator.image   | -> | SourceProbeInput  |
   // |EdgeDetector.edges| -> | ResultProbeInput  |
   // |-------------------------------------------|
-  pSourceProbeInput->connectOutput(pImageFileReader->output("image"));
-  //pResultProbeInput->connectOutput(pEdgeDetector->output("edges"));
+  //pSourceProbeInput->connectOutput(pImageFileReader->output("image"));
+  pSourceProbeInput->connectOutput(pImageAnnotator->output("image"));
+  pResultProbeInput->connectOutput(pEdgeDetector->output("edges"));
 
   // |---------------------------------------------------------|
   // |    Output of            | as | Input of                 |
   // |---------------------------------------------------------|
+  // |ImageFileReader.image    | -> | ImageAnnotator.image     |
   // |EdgeDetector.edges       | -> | HoughTransfor.image      |
   // |HoughTransfor.coordinates| -> | ImageAnnotator.annotation|
-  // |ImageAnnotator.annotation| -> | ResultProbeInput         |
   // |---------------------------------------------------------|
-  //pImageFileReader->connectOutput("image", pImageAnnotator, "image");
+  pImageFileReader->connectOutput("image", pImageAnnotator, "image");
   pEdgeDetector->connectOutput("edges", pHoughTransform, "image");
-  pEdgeDetector->connectOutput("edges", pImageAnnotator, "image");
-  //pHoughTransform->connectOutput("coordinates", pImageAnnotator, "annotation");
-  pResultProbeInput->connectOutput(pImageAnnotator->output("image"));
+  //pEdgeDetector->connectOutput("edges", pImageAnnotator, "image");
+  pHoughTransform->connectOutput("coordinates", pImageAnnotator, "annotation");
+  //pResultProbeInput->connectOutput(pImageAnnotator->output("image"));
 
   // 4. Connnect SourceProbeInput, ResultProbeInput to display
   pResultImageDisplay = new PiiImageDisplay(this);

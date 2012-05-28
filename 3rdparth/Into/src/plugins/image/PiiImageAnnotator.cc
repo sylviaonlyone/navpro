@@ -120,6 +120,8 @@ template <class T> void PiiImageAnnotator::Data::annotate(const PiiVariant& obj)
     {
       const PiiMatrix<T> matrix = obj.valueAs<PiiMatrix<T> >();
       // Protect against exceptions
+      // Cannot create gray image as an annotaion input as painter cannot work on 8 bit image
+      //PiiSmartPtr<PiiQImage<unsigned char> > qmatrix(PiiGrayQImage::create(matrix));
       PiiSmartPtr<PiiQImage<PiiColor4<unsigned char> > > qmatrix(PiiColorQImage::create(matrix));
 
       if (lstAnnotations.size() != 0)
