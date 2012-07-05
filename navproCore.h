@@ -32,6 +32,10 @@
 #include <PiiEngine.h>
 #include <PiiImageDisplay.h>
 #include <PiiProbeInput.h>
+#include "ui_navpro.h"
+
+#define LIB_QT
+
 //#define DEBUG_LOG
 /*
 const static int TOLERANT_COLOR_DEVIATION = 20;
@@ -127,29 +131,55 @@ void home::paintEvent(QPaintEvent *event)
     //painter.drawRect(0,0,realWidth/2,realHeight);
 }
 */
-class navproCore : public QWidget 
+
+class navproCore : public QWidget
 {
   static const int DEFAULT_WIDTH = 640;
+  static const int DEFAULT_FULL_WIDTH = 1200;
   static const int DEFAULT_HEIGHT = 480;
+  enum {
+    HUE = 0,
+    SATURATION,
+    CB,
+    CR
+  };
+
+signals:
+  void updateImage(int);
 
 public:
   navproCore(int width = DEFAULT_WIDTH, int height = DEFAULT_HEIGHT);
   //navproCore(QWidget *parent = 0);
   void searchRoad();
+  void changeThresholdFrom(const int threshold);
+  void changeThresholdTo(const int threshold);
+  void showSliderValue(QSlider *pSlider, const QString& text);
 
 protected:
   void paintEvent(QPaintEvent *event);
-
+  void keyPressEvent(QKeyEvent * e);
 private:
   void init();
+  void setHueFrom(int hue){hueFrom = hue;}
+  void setHueTo(int hue){hueTo = hue;}
 
   PiiEngine *pEngine;
   PiiProbeInput *pSourceProbeInput, *pResultProbeInput;
-  PiiOperation *pImageFileReader;
+  PiiOperation *pImageFileReader, *pImageFileWriter;
   PiiOperation *pEdgeDetector;
   PiiOperation *pHoughTransform;
   PiiOperation *pImageAnnotator;
   PiiImageDisplay *pSourceImageDisplay;
   PiiImageDisplay *pResultImageDisplay;
   QHBoxLayout *pLayout;
+  int hueFrom, hueTo;
+  int saturationFrom, saturationTo;
+  int cbFrom,cbTo;
+  int crFrom,crTo;
+  int *activeFrom, *activeTo;
+  char active;
+#ifdef LIB_QT
+  QStringList fileList;
+  QImage image;
+#endif
 };
