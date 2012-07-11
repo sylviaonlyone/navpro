@@ -28,6 +28,7 @@
 #include <QPixmap>
 #include <QImage>
 #include <QtGlobal>
+#include <QtCore/qmath.h>
 
 #include <PiiEngine.h>
 #include <PiiImageDisplay.h>
@@ -137,6 +138,14 @@ class navproCore : public QWidget
   static const int DEFAULT_WIDTH = 640;
   static const int DEFAULT_FULL_WIDTH = 1200;
   static const int DEFAULT_HEIGHT = 480;
+
+  // 10% of pixels from center will be accounted as sample
+  static const int DEFAULT_SAMPLING_RANGE_PERCENTAGE = 10;
+
+  // center x,y of sample square
+  static const float DEFAULT_X_PROPOTION = 0.5;
+  static const float DEFAULT_Y_PROPOTION = 0.75;
+  
   enum {
     HUE = 0,
     SATURATION,
@@ -160,8 +169,17 @@ protected:
   void keyPressEvent(QKeyEvent * e);
 private:
   void init();
+
+  // HSV + Cb Cr method
   void setHueFrom(int hue){hueFrom = hue;}
   void setHueTo(int hue){hueTo = hue;}
+  bool singalFilter(QRgb clr);
+  bool multiFilters(QRgb clr);
+
+  // Centra point sampling method
+  void getRange();
+
+  bool getStdDeviation(int rangeX, int rangeY, int *hue, int *sat, int *cb, int *cr);
 
   PiiEngine *pEngine;
   PiiProbeInput *pSourceProbeInput, *pResultProbeInput;
@@ -172,12 +190,19 @@ private:
   PiiImageDisplay *pSourceImageDisplay;
   PiiImageDisplay *pResultImageDisplay;
   QHBoxLayout *pLayout;
+
+  // HSV + Cb Cr method
   int hueFrom, hueTo;
   int saturationFrom, saturationTo;
   int cbFrom,cbTo;
   int crFrom,crTo;
   int *activeFrom, *activeTo;
   char active;
+
+  int posX;
+  int posY;
+
+  // Centra point sampling method
 #ifdef LIB_QT
   QStringList fileList;
   QImage image;
