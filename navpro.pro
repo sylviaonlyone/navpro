@@ -24,8 +24,23 @@ FORMS += navpro.ui
 
 DEFINES += QT_NO_DEBUG_OUTPUT
 
+
+PII_LIBCOREPATH = ./3rdparth/Into/src/core/debug/
+PII_LIBYDINPATH = ./3rdparth/Into/src/ydin/debug/
+PII_LIBGUIPATH = ./3rdparth/Into/src/gui/debug/
+PII_LIBTRANSFORMPATH = ./3rdparth/Into/src/plugins/transforms/debug/
+
+QMAKE_LFLAGS +=  -Wl,-rpath,$$PII_LIBCOREPATH
+QMAKE_LFLAGS +=  -Wl,-rpath,$$PII_LIBYDINPATH
+QMAKE_LFLAGS +=  -Wl,-rpath,$$PII_LIBGUIPATH
+QMAKE_LFLAGS +=  -Wl,-rpath,$$PII_LIBTRANSFORMPATH
+
 win32:LIBS += -lpiicore2 -lpiiydin2
-unix|macx:LIBS += -L./3rdparth/Into/src/core/debug/ -lpiicore -L./3rdparth/Into/src/ydin/debug/ -lpiiydin -L./3rdparth/Into/src/gui/debug/ -lpiigui -L./3rdparth/Into/src/plugins/transforms/debug/ -lpiitransforms
+
+unix|macx:LIBS += -L$$PII_LIBCOREPATH -lpiicore \
+                  -L$$PII_LIBYDINPATH -lpiiydin \
+                  -L$$PII_LIBGUIPATH -lpiigui \
+                  -L$$PII_LIBTRANSFORMPATH -lpiitransforms
 
 CONFIG(release, debug|release) {
      release: DEFINES += NDEBUG USER_NO_DEBUG _DISABLE_LOG_
