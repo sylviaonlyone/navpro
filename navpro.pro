@@ -25,7 +25,7 @@ FORMS += navpro.ui
 DEFINES += QT_NO_DEBUG_OUTPUT
 
 win32:LIBS += -lpiicore2 -lpiiydin2
-unix|macx:LIBS += -lpiicore -lpiiydin -lpiigui -lpiitransforms
+unix|macx:LIBS += -L./3rdparth/Into/src/core/debug/ -lpiicore -L./3rdparth/Into/src/ydin/debug/ -lpiiydin -L./3rdparth/Into/src/gui/debug/ -lpiigui -L./3rdparth/Into/src/plugins/transforms/debug/ -lpiitransforms
 
 CONFIG(release, debug|release) {
      release: DEFINES += NDEBUG USER_NO_DEBUG _DISABLE_LOG_
