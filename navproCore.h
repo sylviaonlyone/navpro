@@ -10,10 +10,6 @@
 ===============================================================================
 **  Author            :     
 **  Creation Date     :     2011
--------------------------------------------------------------------------------
-**  CVS Identification:     $Revision: $
-**                          $Author: $
-**                          $Date: $
 ===============================================================================
 **/
 
@@ -28,14 +24,12 @@
 #include <QPixmap>
 #include <QImage>
 #include <QtGlobal>
-#include <QtCore/qmath.h>
 
-#include <PiiEngine.h>
-#include <PiiImageDisplay.h>
-#include <PiiProbeInput.h>
 #include "ui_navpro.h"
+#include "laneTracker.h"
 
 #define LIB_QT
+using namespace cv;
 
 //#define DEBUG_LOG
 /*
@@ -157,7 +151,7 @@ signals:
   void updateImage(int);
 
 public:
-  navproCore(int width = DEFAULT_WIDTH, int height = DEFAULT_HEIGHT);
+  navproCore(laneTracker* tracker, int width = DEFAULT_WIDTH, int height = DEFAULT_HEIGHT);
   //navproCore(QWidget *parent = 0);
   void searchRoad();
   void changeThresholdFrom(const int threshold);
@@ -168,7 +162,7 @@ protected:
   void paintEvent(QPaintEvent *event);
   void keyPressEvent(QKeyEvent * e);
 private:
-  void init();
+  //void init();
 
   // HSV + Cb Cr method
   void setHueFrom(int hue){hueFrom = hue;}
@@ -181,14 +175,6 @@ private:
 
   bool getStdDeviation(int rangeX, int rangeY, int *hue, int *sat, int *cb, int *cr);
 
-  PiiEngine *pEngine;
-  PiiProbeInput *pSourceProbeInput, *pResultProbeInput;
-  PiiOperation *pImageFileReader, *pImageFileWriter;
-  PiiOperation *pEdgeDetector;
-  PiiOperation *pHoughTransform;
-  PiiOperation *pImageAnnotator;
-  PiiImageDisplay *pSourceImageDisplay;
-  PiiImageDisplay *pResultImageDisplay;
   QHBoxLayout *pLayout;
 
   // HSV + Cb Cr method
@@ -203,8 +189,10 @@ private:
   int posY;
 
   // Centra point sampling method
-#ifdef LIB_QT
   QStringList fileList;
   QImage image;
-#endif
+
+  //Image from laneTracker class
+  laneTracker* pTracker;
+  Mat cvImage;
 };

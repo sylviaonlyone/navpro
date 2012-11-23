@@ -1,50 +1,68 @@
 TEMPLATE = app
 TARGET = pod
 QT += core \
-    gui \
-    sql
+    gui 
 
-INTODIR=$$PWD/3rdparth/Into/src
-INCLUDEPATH += $$INTODIR/../include
-include($$INTODIR/base.pri)
+
+QMAKE_CFLAGS += -Werror
+QMAKE_CXXFLAGS += -Werror -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual
+
+#RESOURCES += navpro.qrc
+HEADERS += laneTracker.h \
+           navproCore.h
+SOURCES += main.cpp \
+           laneTracker.cpp \
+           navproCore.cpp
+#FORMS += navpro.ui
+
+DEFINES += QT_NO_DEBUG_OUTPUT
+
+CV_INCLUDEPATH = /usr/local/include/ 
+CV_LIBPATH = /usr/local/lib/
+
+INCLUDEPATH += $$CV_INCLUDEPATH
+               
+DEPENDPATH += INCLUDEPATH
+
+LIBS += -L$$CV_LIBPATH -lopencv_core -lopencv_highgui -lopencv_imgproc
+
+QMAKE_LFLAGS += -Wl,-rpath,$$CV_LIBPATH
+
+
+CONFIG += debug
+
+CONFIG(release, debug|release) {
+     release: DEFINES += NDEBUG USER_NO_DEBUG _DISABLE_LOG_
+}
+
+#----------------------------------------------------
+# PII library related
+#----------------------------------------------------
+#INTODIR=$$PWD/3rdparth/Into/src
+#INCLUDEPATH += $$INTODIR/../include
+#include($$INTODIR/base.pri)
 
 #specific plugin we want
 #PLUGIN=transforms
 #include(../piiplugin.pri)
 #include($$INTODIR/plugins/piiplugin.pri)
 
-QMAKE_CFLAGS += -Werror
-QMAKE_CXXFLAGS += -Werror -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual
-
-RESOURCES += navpro.qrc
-HEADERS += navproCore.h
-SOURCES += main.cpp \
-           navproCore.cpp
-FORMS += navpro.ui
-
-DEFINES += QT_NO_DEBUG_OUTPUT
-
-
-PII_LIBCOREPATH = ./3rdparth/Into/src/core/debug/
-PII_LIBYDINPATH = ./3rdparth/Into/src/ydin/debug/
-PII_LIBGUIPATH = ./3rdparth/Into/src/gui/debug/
-PII_LIBTRANSFORMPATH = ./3rdparth/Into/src/plugins/transforms/debug/
-
-QMAKE_LFLAGS +=  -Wl,-rpath,$$PII_LIBCOREPATH
-QMAKE_LFLAGS +=  -Wl,-rpath,$$PII_LIBYDINPATH
-QMAKE_LFLAGS +=  -Wl,-rpath,$$PII_LIBGUIPATH
-QMAKE_LFLAGS +=  -Wl,-rpath,$$PII_LIBTRANSFORMPATH
-
-win32:LIBS += -lpiicore2 -lpiiydin2
-
-unix|macx:LIBS += -L$$PII_LIBCOREPATH -lpiicore \
-                  -L$$PII_LIBYDINPATH -lpiiydin \
-                  -L$$PII_LIBGUIPATH -lpiigui \
-                  -L$$PII_LIBTRANSFORMPATH -lpiitransforms
-
-CONFIG(release, debug|release) {
-     release: DEFINES += NDEBUG USER_NO_DEBUG _DISABLE_LOG_
-}
+#PII_LIBCOREPATH = ./3rdparth/Into/src/core/debug/
+#PII_LIBYDINPATH = ./3rdparth/Into/src/ydin/debug/
+#PII_LIBGUIPATH = ./3rdparth/Into/src/gui/debug/
+#PII_LIBTRANSFORMPATH = ./3rdparth/Into/src/plugins/transforms/debug/
+#
+#QMAKE_LFLAGS +=  -Wl,-rpath,$$PII_LIBCOREPATH
+#QMAKE_LFLAGS +=  -Wl,-rpath,$$PII_LIBYDINPATH
+#QMAKE_LFLAGS +=  -Wl,-rpath,$$PII_LIBGUIPATH
+#QMAKE_LFLAGS +=  -Wl,-rpath,$$PII_LIBTRANSFORMPATH
+#
+#win32:LIBS += -lpiicore2 -lpiiydin2
+#
+#unix|macx:LIBS += -L$$PII_LIBCOREPATH -lpiicore \
+#                  -L$$PII_LIBYDINPATH -lpiiydin \
+#                  -L$$PII_LIBGUIPATH -lpiigui \
+#                  -L$$PII_LIBTRANSFORMPATH -lpiitransforms
 
 #----------------------------------------------------
 # Lagercy code

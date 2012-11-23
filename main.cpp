@@ -19,18 +19,16 @@
 
 #include <QApplication>
 #include "navproCore.h"
+#include "laneTracker.h"
 //#define DEBUG_LOG
 
 int main(int argc, char *argv[])
 {
-    int retValue;
-
     QApplication a(argc, argv);
 
-    navproCore* instance = new navproCore;
-    instance->show();
+    laneTracker tracker;
+    navproCore instance(&tracker);
 
-    retValue = a.exec();
-    delete instance;
-    return retValue;
+    instance.show();
+    return a.exec();
 }
