@@ -32,7 +32,7 @@ Mat laneTracker::preprocess(const char* path)
   if (!src.data)
     qDebug()<<"src image NULL Error!";
 
-  std::cout<<"image size:"<<src.size()<<" type:"<<src.type()<<std::endl;
+  //std::cout<<"image size:"<<src.size()<<" type:"<<src.type()<<std::endl;
 
   //namedWindow(window_name, CV_WINDOW_AUTOSIZE );
 

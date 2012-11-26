@@ -26,7 +26,7 @@
 
 #define SINGAL 0
 
-navproCore::navproCore(laneTracker* tracker, int width, int height):
+navproCore::navproCore(laneTracker* tracker, particleFilter* filter, int width, int height):
     hueFrom(20),
     hueTo(200),
     saturationFrom(5),
@@ -38,14 +38,15 @@ navproCore::navproCore(laneTracker* tracker, int width, int height):
     activeFrom(&hueFrom),
     activeTo(&hueTo),
     active(HUE),
-    pTracker(tracker)
+    pTracker(tracker),
+    pFilter(filter),
+    path("./road/1.JPG")
 {
     //searchRoad();
-    QDir dir("","*.jpg");
+    QDir dir("road","*.jpg");
     fileList = dir.entryList();
-
-    const char *path = "./road/1.JPG";
-    image.load(QString(path));
+#if 0
+    //image.load(QString(path));
     int centerX = int(image.width() * DEFAULT_X_PROPOTION);
     int centerY = int(image.height() * DEFAULT_Y_PROPOTION);
 
@@ -68,10 +69,173 @@ navproCore::navproCore(laneTracker* tracker, int width, int height):
     //std::cout<<realWidth<<std::endl; 
     //getRange();
     //resize(realWidth, realHeight);
-    resize(image.width(),image.height());
-    cvImage = pTracker->preprocess(path);
+#endif    
+    resize(width/2,height/2);
 }
 
+void navproCore::paintEvent(QPaintEvent *event)
+{
+    (void)event;
+    QPainter painter(this);
+    painter.setPen(QPen(Qt::black, 1));
+    painter.setBrush(QBrush(Qt::red));
+    //QImage output;
+    QImage output(1600, 1200, QImage::Format_RGB888);
+    output.fill(0);
+    output.setPixel(800, 600, 0xffffff);
+
+    if (!cvImage.data)
+    {
+        //output = QImage(path.toAscii().data());
+    }
+    else
+    {
+        output = QImage((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
+    }
+    painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(output.scaledToWidth(output.width()/2)));
+
+    //draw particles
+    const M_Prob* pArray = pFilter->getParticles();
+    for(int i = 0; i < particleFilter::NUMBER_OF_PARTICLES; ++i)
+    {
+        painter.drawEllipse(QPoint(pArray[i].x/2, pArray[i].y/2), 2, 2);
+    }
+#if 0
+    //thresholding
+    for (i = 0; i < image.width(); ++i)
+    {
+        for (j = 0; j < image.height(); ++j)
+        {
+            if (SINGAL ? singalFilter(image.pixel(i,j)):multiFilters(image.pixel(i,j)))
+            {
+               output.setPixel(i,j, image.pixel(i,j)); 
+            }
+            else
+            {
+               output.setPixel(i,j, 0); 
+            }
+        }
+    }
+    //std::cout<<image.depth()<<std::endl;
+    //std::cout<<image.width()<<std::endl;
+    //std::cout<<image.height()<<std::endl;
+    //std::cout<<pixels.size() <<std::endl;
+    //std::cout<<"Format: "<<image.format()<<std::endl;
+#endif
+    // Draw the background pixmap
+    // if image is too large, half it size for display
+
+//    std::cout<<"width: "<<image.width()<<" height: "<<image.height()<<std::endl;
+//    std::cout<<"pox: "<<posX<<" poy: "<<posY<<std::endl;
+//    std::cout<<"diffx: "<<diffX<<" diffy: "<<diffY<<std::endl;
+//    painter.drawRect(posX - diffX , posY - diffY , rangeX, rangeY);
+}
+
+void navproCore::probe(const QString& path)
+{
+    //cvImage = pTracker->preprocess(path.toAscii().data());
+    //cvImage = pTracker->preprocess("road/1.JPG");
+
+    //QImage edges((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
+    QImage edges(1600, 1200, QImage::Format_RGB888);
+    edges.fill(0);
+    edges.setPixel(800, 600, 0xffffff);
+
+    pFilter->measurementUpdate(edges); 
+    pFilter->resample();
+}
+
+bool navproCore::singalFilter(QRgb clr)
+{
+    bool display = false;
+
+    QColor hsv = QColor::fromRgb(clr);
+    int cb = RGB2CB(clr);
+    int cr = RGB2CR(clr);
+    //std::cout<<"HSV:hue: "<<hsv.hue()<<std::endl;
+    switch (active)
+    {
+      case HUE:
+        {
+            if (hsv.hue() >= hueFrom && hsv.hue()<=hueTo)
+              display = true;
+        }
+        break;
+      case SATURATION:
+        {
+            if (hsv.saturation() >= saturationFrom && hsv.saturation()<=saturationTo)
+              display = true;
+        }
+        break;
+      case CB:
+        {
+            if (cb >= cbFrom && cb<=cbTo)
+              display = true;
+        }
+        break;
+      case CR:
+        {
+            if (cr >= crFrom && cr<=crTo)
+              display = true;
+        }
+        break;
+    }
+
+    return display;
+}
+
+bool navproCore::multiFilters(QRgb clr)
+{
+    //bool display = true;
+
+    QColor hsv = QColor::fromRgb(clr);
+    int cb = RGB2CB(clr);
+    int cr = RGB2CR(clr);
+    //ord: 1. saturation 2. cb/cr 3.hue
+
+    if (hsv.saturation() < saturationFrom || hsv.saturation() > saturationTo)
+    {
+      //display = false;
+      return false;
+    }
+   
+    if (cb < cbFrom || cb > cbTo)
+    {
+      return false;
+    }
+
+    if (cr < crFrom || cr > crTo)
+    {
+      return false;
+    }
+
+    if (hsv.hue() < hueFrom || hsv.hue() > hueTo)
+    {
+      return false;
+    }
+
+    return true;
+}
+
+#if 0
+void navproCore::changeThresholdFrom(const int threshold)
+{
+  // Change threshold
+  setHueFrom(threshold);
+  
+  // Select the same image again
+  emit update();
+}
+
+void navproCore::changeThresholdTo(const int threshold)
+{
+
+  // Change threshold
+  setHueTo(threshold);
+  
+  // Select the same image again
+  emit update();
+}
 void navproCore::getRange()
 {
     //int centerX = int(image.width() * DEFAULT_X_PROPOTION);
@@ -247,175 +411,7 @@ bool navproCore::getStdDeviation(int rangeX, int rangeY, int *hue, int *sat, int
 
     return true;
 }
-
-void navproCore::paintEvent(QPaintEvent *event)
-{
-    (void)event;
-    QPainter painter(this);
-    painter.setPen(QPen(Qt::black, 1));
-
-    if (!cvImage.data)
-    {
-        std::cout<<"cv Image not data"<<std::endl;
-        return;
-    }
-    QImage output((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
-
-#if 0
-    //thresholding
-    for (i = 0; i < image.width(); ++i)
-    {
-        for (j = 0; j < image.height(); ++j)
-        {
-            if (SINGAL ? singalFilter(image.pixel(i,j)):multiFilters(image.pixel(i,j)))
-            {
-               output.setPixel(i,j, image.pixel(i,j)); 
-            }
-            else
-            {
-               output.setPixel(i,j, 0); 
-            }
-        }
-    }
-    //std::cout<<image.depth()<<std::endl;
-    //std::cout<<image.width()<<std::endl;
-    //std::cout<<image.height()<<std::endl;
-    //std::cout<<pixels.size() <<std::endl;
-    //std::cout<<"Format: "<<image.format()<<std::endl;
 #endif
-    // Draw the background pixmap
-    // if image is too large, half it size for display
-
-    //paint center sampling rectangle
-    int rangeX = image.width() * DEFAULT_SAMPLING_RANGE_PERCENTAGE/100;
-    int rangeY = image.height() * DEFAULT_SAMPLING_RANGE_PERCENTAGE/100;
-
-    int diffX, diffY;
-
-    diffX = diffY = 0;
-
-    //painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(image.scaledToWidth(image.width()/2)));
-    if (DEFAULT_FULL_WIDTH <= image.width()*2)
-    {
-        //painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(image.scaledToWidth(image.width()/2)));
-        //painter.drawPixmap(QPoint(image.width()/2 + 1, 0), QPixmap::fromImage(output.scaledToWidth(output.width()/2)));
-
-        int centerX = int(image.width() * DEFAULT_X_PROPOTION);
-        int centerY = int(image.height() * DEFAULT_Y_PROPOTION);
-
-        // x, y divied by 2
-        centerX >>= 1;
-        centerY >>= 1;
-
-        rangeX >>= 1;
-        rangeY >>= 1;
-
-        diffX = posX - (centerX - rangeX / 2);
-        diffY = posY - (centerY - rangeY / 2);
-    }
-    else
-    {
-        //painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(image));
-        //painter.drawPixmap(QPoint(image.width() + 1, 0), QPixmap::fromImage(output));
-    }
-
-    painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(output));
-    std::cout<<"width: "<<image.width()<<" height: "<<image.height()<<std::endl;
-    std::cout<<"pox: "<<posX<<" poy: "<<posY<<std::endl;
-    std::cout<<"diffx: "<<diffX<<" diffy: "<<diffY<<std::endl;
-    painter.drawRect(posX - diffX , posY - diffY , rangeX, rangeY);
-}
-
-bool navproCore::singalFilter(QRgb clr)
-{
-    bool display = false;
-
-    QColor hsv = QColor::fromRgb(clr);
-    int cb = RGB2CB(clr);
-    int cr = RGB2CR(clr);
-    //std::cout<<"HSV:hue: "<<hsv.hue()<<std::endl;
-    switch (active)
-    {
-      case HUE:
-        {
-            if (hsv.hue() >= hueFrom && hsv.hue()<=hueTo)
-              display = true;
-        }
-        break;
-      case SATURATION:
-        {
-            if (hsv.saturation() >= saturationFrom && hsv.saturation()<=saturationTo)
-              display = true;
-        }
-        break;
-      case CB:
-        {
-            if (cb >= cbFrom && cb<=cbTo)
-              display = true;
-        }
-        break;
-      case CR:
-        {
-            if (cr >= crFrom && cr<=crTo)
-              display = true;
-        }
-        break;
-    }
-
-    return display;
-}
-
-bool navproCore::multiFilters(QRgb clr)
-{
-    //bool display = true;
-
-    QColor hsv = QColor::fromRgb(clr);
-    int cb = RGB2CB(clr);
-    int cr = RGB2CR(clr);
-    //ord: 1. saturation 2. cb/cr 3.hue
-
-    if (hsv.saturation() < saturationFrom || hsv.saturation() > saturationTo)
-    {
-      //display = false;
-      return false;
-    }
-   
-    if (cb < cbFrom || cb > cbTo)
-    {
-      return false;
-    }
-
-    if (cr < crFrom || cr > crTo)
-    {
-      return false;
-    }
-
-    if (hsv.hue() < hueFrom || hsv.hue() > hueTo)
-    {
-      return false;
-    }
-
-    return true;
-}
-
-void navproCore::changeThresholdFrom(const int threshold)
-{
-  // Change threshold
-  setHueFrom(threshold);
-  
-  // Select the same image again
-  emit update();
-}
-
-void navproCore::changeThresholdTo(const int threshold)
-{
-
-  // Change threshold
-  setHueTo(threshold);
-  
-  // Select the same image again
-  emit update();
-}
 
 void navproCore::keyPressEvent(QKeyEvent * e)
 {
@@ -424,48 +420,30 @@ void navproCore::keyPressEvent(QKeyEvent * e)
       //Left/Right for hue from
       //Up/Down for hue to
       case Qt::Key_Left:
-        if (*activeFrom > 1)
-          --*activeFrom;
         break;
       case Qt::Key_Down:
-        if (*activeTo > 1)
-          --*activeTo;
         break;
       case Qt::Key_Right:
-        ++*activeFrom;
         break;
       case Qt::Key_Up:
-        ++*activeTo;
         break;
       case Qt::Key_S:
         {
-          activeFrom = &saturationFrom;
-          activeTo   = &saturationTo;
-          active = SATURATION;
           std::cout<<"SAT ";
           break;
         }
       case Qt::Key_U:
         {
-          activeFrom = &hueFrom;
-          activeTo   = &hueTo;
-          active = HUE;
           std::cout<<"HUE ";
           break;
         }
       case Qt::Key_B:
         {
-          activeFrom = &cbFrom;
-          activeTo   = &cbTo;
-          active = CB;
           std::cout<<"CB ";
           break;
         }
       case Qt::Key_R:
         {
-          activeFrom = &crFrom;
-          activeTo   = &crTo;
-          active = CR;
           std::cout<<"CR ";
           break;
         }
@@ -488,32 +466,45 @@ void navproCore::keyPressEvent(QKeyEvent * e)
       case Qt::Key_N:
        {
         static int cur = 0;
-        std::cout<<"Cur: "<<cur<<" of : "<<fileList.size()<<std::endl; 
-        if (fileList.size() > 0)
+        //std::cout<<"Cur: "<<cur<<" of : "<<fileList.size()<<std::endl; 
+        //if (fileList.size() > 0)
         {
-            if (cur == fileList.size()) cur = 0;
-            image.load(fileList[cur]);
-            ++cur;
+    int N = 10;
+    int i = 0;
+    //while (i < N)
+    {
+            probe(QString("road/") + fileList[cur]);
+            //move();
+            //update display
+            update();
+        //if (i%10 == 0)
+        {
+        //    repaint();
+        }
+        ++i;
+    }
+            //if (cur == fileList.size()) cur = 0;
+            //++cur;
     
-            int realWidth = image.width()*2;
-            int realHeight = image.height();
-    
-            if (DEFAULT_FULL_WIDTH <= realWidth)
-            {
-                //cut size to half if it's too large to display
-                realWidth >>= 1;
-                realHeight >>=1;
-            }
-    
-            std::cout<<realWidth<<std::endl; 
-            resize(realWidth, realHeight);
-            getRange();
+//            int realWidth = image.width()*2;
+//            int realHeight = image.height();
+//    
+//            if (DEFAULT_FULL_WIDTH <= realWidth)
+//            {
+//                //cut size to half if it's too large to display
+//                realWidth >>= 1;
+//                realHeight >>=1;
+//            }
+//    
+//            std::cout<<realWidth<<std::endl; 
+//            resize(realWidth, realHeight);
+//            getRange();
         }
         break;
        }
     }
     //std::cout<<"From: "<<*activeFrom<<" To: "<<*activeTo<<std::endl; 
-    update();
+    //update();
 }
 
 #ifdef LIB_PII

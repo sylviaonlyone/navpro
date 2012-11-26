@@ -25,8 +25,9 @@
 #include <QImage>
 #include <QtGlobal>
 
-#include "ui_navpro.h"
+//#include "ui_navpro.h"
 #include "laneTracker.h"
+#include "particleFilter.h"
 
 #define LIB_QT
 using namespace cv;
@@ -129,9 +130,9 @@ void home::paintEvent(QPaintEvent *event)
 
 class navproCore : public QWidget
 {
-  static const int DEFAULT_WIDTH = 640;
+  static const int DEFAULT_WIDTH = 1600;
   static const int DEFAULT_FULL_WIDTH = 1200;
-  static const int DEFAULT_HEIGHT = 480;
+  static const int DEFAULT_HEIGHT = 1200;
 
   // 10% of pixels from center will be accounted as sample
   static const int DEFAULT_SAMPLING_RANGE_PERCENTAGE = 10;
@@ -151,12 +152,13 @@ signals:
   void updateImage(int);
 
 public:
-  navproCore(laneTracker* tracker, int width = DEFAULT_WIDTH, int height = DEFAULT_HEIGHT);
+  navproCore(laneTracker* tracker, particleFilter* filter, int width = DEFAULT_WIDTH, int height = DEFAULT_HEIGHT);
   //navproCore(QWidget *parent = 0);
   void searchRoad();
   void changeThresholdFrom(const int threshold);
   void changeThresholdTo(const int threshold);
   void showSliderValue(QSlider *pSlider, const QString& text);
+  void probe(const QString& path);
 
 protected:
   void paintEvent(QPaintEvent *event);
@@ -190,9 +192,10 @@ private:
 
   // Centra point sampling method
   QStringList fileList;
-  QImage image;
 
   //Image from laneTracker class
   laneTracker* pTracker;
+  particleFilter* pFilter;
   Mat cvImage;
+  QString path;
 };

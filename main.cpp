@@ -20,6 +20,7 @@
 #include <QApplication>
 #include "navproCore.h"
 #include "laneTracker.h"
+#include "particleFilter.h"
 //#define DEBUG_LOG
 
 int main(int argc, char *argv[])
@@ -27,7 +28,8 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     laneTracker tracker;
-    navproCore instance(&tracker);
+    particleFilter filter;
+    navproCore instance(&tracker, &filter);
 
     instance.show();
     return a.exec();

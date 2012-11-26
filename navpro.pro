@@ -5,13 +5,15 @@ QT += core \
 
 
 QMAKE_CFLAGS += -Werror
-QMAKE_CXXFLAGS += -Werror -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual
+#QMAKE_CXXFLAGS += -Werror -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual
 
 #RESOURCES += navpro.qrc
 HEADERS += laneTracker.h \
+           particleFilter.h \
            navproCore.h
 SOURCES += main.cpp \
            laneTracker.cpp \
+           particleFilter.cpp \
            navproCore.cpp
 #FORMS += navpro.ui
 

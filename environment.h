@@ -17,10 +17,18 @@
 #define NAVPRO_ENVIRONMENT_H_
 
 #include <math.h>
+#include <QtGlobal>
 
 #define PI		3.14159265358979323846	// pi
-#define GAUSSIAN(MU, SIGMA, X) \
-        {                      \
+#define Gaussian(MU, SIGMA, X) \
+        (                      \
           exp(-(pow(((MU) - (X)), 2) / (2 * pow((SIGMA), 2)))) / ((SIGMA) * sqrt(2.0 * PI)) \
-        }      
+        )      
+#if 0
+#define Distance(X1, Y1, X2, Y2) \
+        (                        \
+          sqrt(pow((X1-X2), 2) + pow((Y1-Y2), 2)) \
+        )
+#endif            
+
 #endif  //NAVPRO_ENVIRONMENT_H_
