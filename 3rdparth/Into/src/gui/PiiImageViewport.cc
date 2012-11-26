@@ -898,7 +898,19 @@ QString PiiImageViewport::toolTipText(const QPoint& imagePoint)
       if (qRed(clr) == qGreen(clr) && qGreen(clr) == qBlue(clr))
         message += tr("Gray level:\t%1").arg(qRed(clr));
       else
+      {
         message += tr("Color:\t(%1,%2,%3)").arg(qRed(clr)).arg(qGreen(clr)).arg(qBlue(clr));
+        message += "\n";
+        QColor color(clr);
+        int cb, cr;
+        cb = 0.148*qRed(clr)-0.291*qGreen(clr)+0.439*qBlue(clr)+128;
+        cr = 0.439*qRed(clr)-0.368*qGreen(clr)+0.071*qBlue(clr)+128;
+        message += tr("Hsv:\t(H %1,S %2,V %3)").arg(color.hsvHue()).arg(color.hsvSaturation()).arg(color.value());
+        message += "\n";
+        message += tr("Hsl:\t(H %1,S %2,L %3)").arg(color.hslHue()).arg(color.hslSaturation()).arg(color.lightness());
+        message += "\n";
+        message += tr("CbCr:\t(Cb %1,Cr %2)").arg(cb).arg(cr);
+      }
     }
 
   for (int i=0; i<d->overlays.size(); i++)

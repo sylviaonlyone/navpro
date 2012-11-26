@@ -163,7 +163,7 @@ void PiiHoughTransformOperation::savePeak(PiiMatrix<double>& peaks, PiiMatrix<do
     dd * d->dDistanceResolution + d->iStartDistance;
 
   peaks.insertRow(-1, dR, dAngle);
-  //qDebug("dAngle = %lf, dR = %lf", dAngle, dR);
+  qDebug("dAngle = %lf, dR = %lf", dAngle, dR);
   
   double* pRow = coordinates.appendRow();
 
