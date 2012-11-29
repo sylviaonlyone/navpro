@@ -30,8 +30,13 @@ class laneTracker
 public:
   laneTracker();
   ~laneTracker();
-  Mat preprocess(const char* path);
+
+  int preprocess             (const char* path);
+  Mat edgeDetect              ();
+  vector<Mat>& roadColorDetect (float array3D[][256][256]);
 private:
-  Mat src;
+  Mat src_;
+  Mat gray_;
+  vector<Mat>* pHistVector_;
 };
 #endif //NAVPRO_LANETRACKER_H_

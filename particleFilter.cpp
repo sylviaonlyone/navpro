@@ -20,8 +20,10 @@
 #include <QColor>
 #include "particleFilter.h"
 
+using namespace cv;
+
 particleFilter::particleFilter()
-    : globleNoise(200.0),
+    : globleNoise(100.0),
     pMeasureArray(NULL)
 {
     try {
@@ -41,6 +43,28 @@ particleFilter::~particleFilter()
     pMeasureArray = NULL;
 }
 
+void particleFilter::measurementUpdate(const std::vector<Mat>& rgbHistogram, const QImage& rawImage)
+{
+    Mat bHist = rgbHistogram[0];
+    Mat gHist = rgbHistogram[1];
+    Mat rHist = rgbHistogram[2];
+    QRgb p;
+    float probRoad[rawImage.width()][rawImage.height()];
+    std::cout<<"B hist Y:"<<bHist.rows<<" X:"<<bHist.cols<<std::endl;
+
+    for(int x = 0; x < rawImage.width(); ++x)
+    {
+        for(int y = 0; y < rawImage.height(); ++y)
+        {
+            p = rawImage.pixel(x, y);
+            // get probability of blue
+            probRoad[x][y] = bHist.at<int>(qBlue (p)) *
+                       gHist.at<int>(qGreen(p)) *
+                       rHist.at<int>(qRed  (p)); 
+        }
+    }
+}
+
 void particleFilter::measurementUpdate(const QImage& edges)
 {
     int height = edges.height();
@@ -50,7 +74,7 @@ void particleFilter::measurementUpdate(const QImage& edges)
     float prob;
     for(i = 0; i < width; ++i)
     {
-        for(j = 0; j < height; ++j)
+        for(j = height/2; j < height; ++j)
         {
             if (QColor(edges.pixel(i, j)) != QColor(Qt::black))
             {
@@ -115,7 +139,7 @@ void particleFilter::resample()
 
             index = (index + 1) % NUMBER_OF_PARTICLES;
         }
-        std::cout<<"index:"<<index<<" kept"<<std::endl;
+        //std::cout<<"index:"<<index<<" kept"<<std::endl;
         newProbArray[i] = pMeasureArray[index]; 
     }
 
@@ -130,7 +154,7 @@ void particleFilter::resample()
 
 void particleFilter::printParticles(const char* header)
 {
-#if 1
+#if 0
     if (header)
       std::cout<<*header<<std::endl;
     int i = 0;
@@ -156,4 +180,12 @@ void particleFilter::printParticles(const char* header)
     }
     std::cout<<"\n==========END=========="<<std::endl;
 #endif
+}
+
+void particleFilter::move(const int pixels)
+{
+    for(int i = 0; i < NUMBER_OF_PARTICLES; ++i)
+    {
+        pMeasureArray[i].y += pixels; 
+    }
 }

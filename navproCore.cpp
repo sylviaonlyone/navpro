@@ -20,10 +20,6 @@
 #include "navproCore.h"
 #include <QDir>
 
-#define RGB2CB(clr) (0.148*qRed((clr))-0.291*qGreen((clr))+0.439*qBlue((clr))+128)
-
-#define RGB2CR(clr) (0.439*qRed((clr))-0.368*qGreen((clr))+0.071*qBlue((clr))+128)
-
 #define SINGAL 0
 
 navproCore::navproCore(laneTracker* tracker, particleFilter* filter, int width, int height):
@@ -79,14 +75,14 @@ void navproCore::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setPen(QPen(Qt::black, 1));
     painter.setBrush(QBrush(Qt::red));
-    //QImage output;
-    QImage output(1600, 1200, QImage::Format_RGB888);
-    output.fill(0);
-    output.setPixel(800, 600, 0xffffff);
+    QImage output;
+    //QImage output(1600, 1200, QImage::Format_RGB888);
+    //output.fill(0);
+    //output.setPixel(800, 600, 0xffffff);
 
     if (!cvImage.data)
     {
-        //output = QImage(path.toAscii().data());
+        output = QImage(path.toAscii().data());
     }
     else
     {
@@ -133,16 +129,31 @@ void navproCore::paintEvent(QPaintEvent *event)
 
 void navproCore::probe(const QString& path)
 {
-    //cvImage = pTracker->preprocess(path.toAscii().data());
-    //cvImage = pTracker->preprocess("road/1.JPG");
+    if(pTracker->preprocess(path.toAscii().data()) == -1)
+    {
+        std::cerr<<"Preprocessing error!!!";
+        return;
+    }
+    cvImage = pTracker->edgeDetect();
 
-    //QImage edges((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
-    QImage edges(1600, 1200, QImage::Format_RGB888);
-    edges.fill(0);
-    edges.setPixel(800, 600, 0xffffff);
+    //cvImage = pTracker->preprocess("road/1.JPG");
+    //pFilter->measurementUpdate(pTracker->roadColorDetect(), QImage(path)); 
+
+    std::vector<Mat> histVec = pTracker->roadColorDetect(rgbSpaceProbArray3D);
+
+    QImage edges((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
+    //QImage edges(1600, 1200, QImage::Format_RGB888);
+    //edges.fill(0);
+    //edges.setPixel(800, 600, 0xffffff);
 
     pFilter->measurementUpdate(edges); 
     pFilter->resample();
+}
+
+void navproCore::move()
+{
+    //assume velocity is 1m/s, on image, every step move 40 pixles on Y
+    pFilter->move(40);
 }
 
 bool navproCore::singalFilter(QRgb clr)
@@ -467,24 +478,26 @@ void navproCore::keyPressEvent(QKeyEvent * e)
        {
         static int cur = 0;
         //std::cout<<"Cur: "<<cur<<" of : "<<fileList.size()<<std::endl; 
-        //if (fileList.size() > 0)
+        if (fileList.size() > 0)
         {
-    int N = 10;
+            if (cur < fileList.size())
+            {
+    int N = 20;
     int i = 0;
     //while (i < N)
     {
             probe(QString("road/") + fileList[cur]);
-            //move();
             //update display
             update();
+            move();
         //if (i%10 == 0)
         {
         //    repaint();
         }
         ++i;
     }
-            //if (cur == fileList.size()) cur = 0;
-            //++cur;
+            ++cur;
+            }
     
 //            int realWidth = image.width()*2;
 //            int realHeight = image.height();

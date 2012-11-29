@@ -29,7 +29,6 @@
 #include "laneTracker.h"
 #include "particleFilter.h"
 
-#define LIB_QT
 using namespace cv;
 
 //#define DEBUG_LOG
@@ -159,6 +158,7 @@ public:
   void changeThresholdTo(const int threshold);
   void showSliderValue(QSlider *pSlider, const QString& text);
   void probe(const QString& path);
+  void move();
 
 protected:
   void paintEvent(QPaintEvent *event);
@@ -198,4 +198,7 @@ private:
   particleFilter* pFilter;
   Mat cvImage;
   QString path;
+  
+  // 3-D array stores R,G,B probabilities
+  float rgbSpaceProbArray3D[256][256][256];
 };

@@ -21,7 +21,10 @@
 
 #include <QImage>
 
+#include <opencv2/core/core.hpp>
+
 #include "environment.h"
+
 
 static int randomInt(const int low, const int high)
 {
@@ -46,7 +49,7 @@ struct measurement
 
   measurement()
     : x(randomInt(0, 1600)),
-    y(randomInt(0, 1200)),
+    y(randomInt(600, 1200)),
     probabilityEdge(0.0),
     probabilityMarker(0.0),
     probabilityRoad(0.0),
@@ -76,8 +79,12 @@ class particleFilter
     particleFilter();
     ~particleFilter();
     void resample();
+    // update road color cue
+    void measurementUpdate(const std::vector<cv::Mat>& rgbHistogram, const QImage& rawImage);
+    // update road edge cue
     void measurementUpdate(const QImage&);
     const M_Prob* getParticles() { return pMeasureArray;}
+    void move(const int pixels);
 
   private:
     particleFilter            (const particleFilter &);
