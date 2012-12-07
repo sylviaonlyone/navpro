@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
     particleFilter filter;
     navproCore instance(&tracker, &filter);
 
+    instance.probe(QString("./road/1.JPG"));
     instance.show();
     return a.exec();
 }

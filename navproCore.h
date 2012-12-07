@@ -198,7 +198,5 @@ private:
   particleFilter* pFilter;
   Mat cvImage;
   QString path;
-  
-  // 3-D array stores R,G,B probabilities
-  float rgbSpaceProbArray3D[256][256][256];
+  std::vector<Mat> histVec;
 };

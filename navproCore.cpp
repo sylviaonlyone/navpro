@@ -76,9 +76,9 @@ void navproCore::paintEvent(QPaintEvent *event)
     painter.setPen(QPen(Qt::black, 1));
     painter.setBrush(QBrush(Qt::red));
     QImage output;
-    //QImage output(1600, 1200, QImage::Format_RGB888);
-    //output.fill(0);
-    //output.setPixel(800, 600, 0xffffff);
+    QImage roadcolor(1600, 1200, QImage::Format_RGB888);
+    roadcolor.fill(0);
+    roadcolor.setPixel(800, 600, 0xffffff);
 
     if (!cvImage.data)
     {
@@ -88,13 +88,49 @@ void navproCore::paintEvent(QPaintEvent *event)
     {
         output = QImage((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
     }
-    painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(output.scaledToWidth(output.width()/2)));
+
+    QRgb p;
+    int gray;
+    float r, g,b;
+//    for(int i = 0 ;i <256;i++)
+//    {
+//        std::cout<<"r:"<<histVec[2].at<float>(i); 
+//        std::cout<<" g:"<<histVec[1].at<float>(i); 
+//        std::cout<<" b:"<<histVec[0].at<float>(i); 
+//        std::cout<<std::endl;
+//    }
+    float array[output.width()][output.height()];
+    float max = 0.0;
+    for(int x = 0; x <output.width(); x++)
+    {
+        for(int y = 0; y< output.height(); y++)
+        {
+            p = output.pixel(x, y);
+            b = histVec[0].at<float>(qBlue(p))/100.0;
+            g = histVec[1].at<float>(qGreen(p))/100.0;
+            r = histVec[2].at<float>(qRed(p))/100.0;
+            array[x][y] = r*g*b;
+            if (array[x][y] > max) max = array[x][y];
+        }
+    }
+    std::cout<<"max:"<<max<<std::endl;
+    for(int x = 0; x <output.width(); x++)
+    {
+        for(int y = 0; y< output.height(); y++)
+        {
+          array[x][y] = array[x][y]/max;
+          gray = array[x][y] * 255;
+          roadcolor.setPixel(x, y, qRgb(gray, gray, gray));
+        }
+    }
+    //painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(output.scaledToWidth(output.width()/2)));
+    painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(roadcolor.scaledToWidth(output.width()/2)));
 
     //draw particles
-    const M_Prob* pArray = pFilter->getParticles();
-    for(int i = 0; i < particleFilter::NUMBER_OF_PARTICLES; ++i)
+    //const M_Prob* pArray = pFilter->getParticles();
+    //for(int i = 0; i < particleFilter::NUMBER_OF_PARTICLES; ++i)
     {
-        painter.drawEllipse(QPoint(pArray[i].x/2, pArray[i].y/2), 2, 2);
+    //    painter.drawEllipse(QPoint(pArray[i].x/2, pArray[i].y/2), 2, 2);
     }
 #if 0
     //thresholding
@@ -134,20 +170,22 @@ void navproCore::probe(const QString& path)
         std::cerr<<"Preprocessing error!!!";
         return;
     }
-    cvImage = pTracker->edgeDetect();
+    //cvImage = pTracker->edgeDetect();
 
     //cvImage = pTracker->preprocess("road/1.JPG");
     //pFilter->measurementUpdate(pTracker->roadColorDetect(), QImage(path)); 
 
-    std::vector<Mat> histVec = pTracker->roadColorDetect(rgbSpaceProbArray3D);
+    // 3-D array stores R,G,B probabilities
 
-    QImage edges((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
+    histVec = pTracker->roadColorDetect();
+
+    //QImage edges((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
     //QImage edges(1600, 1200, QImage::Format_RGB888);
     //edges.fill(0);
     //edges.setPixel(800, 600, 0xffffff);
 
-    pFilter->measurementUpdate(edges); 
-    pFilter->resample();
+    //pFilter->measurementUpdate(edges); 
+    //pFilter->resample();
 }
 
 void navproCore::move()

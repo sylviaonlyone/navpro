@@ -49,7 +49,7 @@ int laneTracker::preprocess(const char* path)
   return 0;
 }
 
-vector<Mat>& laneTracker::roadColorDetect(float array3D[][256][256])
+vector<Mat>& laneTracker::roadColorDetect()
 {
 
   // TODO Set ROI(Rect of interests) to down-half of image, where I assume 
@@ -91,35 +91,6 @@ vector<Mat>& laneTracker::roadColorDetect(float array3D[][256][256])
   normalize(g_hist, g_hist, 0, 100, NORM_MINMAX, -1, Mat() );
   normalize(r_hist, r_hist, 0, 100, NORM_MINMAX, -1, Mat() );
 
-  //create RGB 3D array
-  float sum = 0.0;
-  for(int r = 0; r < 256; ++r)
-  {
-      for(int g = 0; g < 256; ++g)
-      {
-          for(int b = 0; b < 256; ++b)
-          {
-              array3D[r][g][b] = static_cast<float>(r_hist.at<int>(r) * g_hist.at<int>(g) * b_hist.at<int>(b)) / 
-                                 static_cast<float>(100 * 100 * 100);
-              sum += array3D[r][g][b];
-          }
-      }
-  }
-
-  //normalize result
-  for(int r = 0; r < 256; ++r)
-  {
-      for(int g = 0; g < 256; ++g)
-      {
-          for(int b = 0; b < 256; ++b)
-          {
-              array3D[r][g][b] = array3D[r][g][b]/sum;
-          }
-      }
-  }
-
-  std::cout<<"sum: "<<sum<<std::endl;
-
   // TODO remember to clear vector in the next around
   pHistVector_->push_back(b_hist);
   pHistVector_->push_back(g_hist);
@@ -148,3 +119,4 @@ Mat laneTracker::edgeDetect()
 
   return dstRGB;
 }
+

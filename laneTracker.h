@@ -33,7 +33,7 @@ public:
 
   int preprocess             (const char* path);
   Mat edgeDetect              ();
-  vector<Mat>& roadColorDetect (float array3D[][256][256]);
+  vector<Mat>& roadColorDetect ();
 private:
   Mat src_;
   Mat gray_;
