@@ -20,8 +20,6 @@
 #include "navproCore.h"
 #include <QDir>
 
-#define SINGAL 0
-
 navproCore::navproCore(laneTracker* tracker, particleFilter* filter, int width, int height):
     hueFrom(20),
     hueTo(200),
@@ -80,13 +78,20 @@ void navproCore::paintEvent(QPaintEvent *event)
     roadcolor.fill(0);
     roadcolor.setPixel(800, 600, 0xffffff);
 
+    // used for 8-bits image
+    QVector<QRgb> colorTable;
+    for (int i = 0; i < 256; i++) colorTable.push_back(qRgb(i, i, i));
+    
+
     if (!cvImage.data)
     {
         output = QImage(path.toAscii().data());
     }
     else
     {
-        output = QImage((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
+        //output = QImage((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
+        output = QImage((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, QImage::Format_Indexed8);
+        output.setColorTable(colorTable);
     }
 
     QRgb p;
@@ -99,6 +104,7 @@ void navproCore::paintEvent(QPaintEvent *event)
 //        std::cout<<" b:"<<histVec[0].at<float>(i); 
 //        std::cout<<std::endl;
 //    }
+#if 0
     float array[output.width()][output.height()];
     float max = 0.0;
     for(int x = 0; x <output.width(); x++)
@@ -123,8 +129,9 @@ void navproCore::paintEvent(QPaintEvent *event)
           roadcolor.setPixel(x, y, qRgb(gray, gray, gray));
         }
     }
-    //painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(output.scaledToWidth(output.width()/2)));
-    painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(roadcolor.scaledToWidth(output.width()/2)));
+#endif
+    painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(output.scaledToWidth(output.width()/2)));
+    //painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(roadcolor.scaledToWidth(output.width()/2)));
 
     //draw particles
     //const M_Prob* pArray = pFilter->getParticles();
@@ -177,7 +184,8 @@ void navproCore::probe(const QString& path)
 
     // 3-D array stores R,G,B probabilities
 
-    histVec = pTracker->roadColorDetect();
+    //histVec = pTracker->roadColorDetect();
+    cvImage = pTracker->laneMarkerDetect();
 
     //QImage edges((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
     //QImage edges(1600, 1200, QImage::Format_RGB888);

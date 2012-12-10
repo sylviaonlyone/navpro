@@ -51,7 +51,6 @@ int laneTracker::preprocess(const char* path)
 
 vector<Mat>& laneTracker::roadColorDetect()
 {
-
   // TODO Set ROI(Rect of interests) to down-half of image, where I assume 
   // road would be. May use Road Region Model with more accuratcy
 
@@ -118,5 +117,62 @@ Mat laneTracker::edgeDetect()
   cvtColor(dst,dstRGB, CV_BGR2RGB);
 
   return dstRGB;
+}
+
+Mat laneTracker::cvLaplicain()
+{
+  Mat src, dst, abs_dst;
+
+  GaussianBlur(gray_, src, Size(5,5), 0, 0);
+
+  int kernel_size = 3;
+  int scale = 1;
+  int delta = 0;
+  int ddepth = CV_16S;
+  Laplacian(src, dst, ddepth, kernel_size, scale, delta, BORDER_DEFAULT);
+  convertScaleAbs(dst, abs_dst);
+
+  return abs_dst;
+}
+
+Mat laneTracker::laneMarkerDetect()
+{
+  int kernel_size = 11;
+  float k[kernel_size] ;
+  //calc 1-D kernel;
+  int i,j;
+  for(i = 0, j = -(kernel_size/2); i <= kernel_size; ++i, ++j)
+  {
+      k[i] = LoG(j);
+      std::cout<<" k["<<j<<"]: "<<k[i];
+  }
+  std::cout<<std::endl;
+  Mat kernel(3, 1, CV_8U, k);
+
+  Mat src, dst;
+  src = gray_;
+  dst.create( src.size(), CV_MAKETYPE(CV_8U, src.channels()));
+  std::cout<<"size: "<<src.size()<<" cols:"<<src.cols<<" rows:"<<src.rows<<std::endl;
+
+  uchar *src_row, *src_pos_in_row, *dst_row;
+  
+  float sum_f;
+  for(int y = 0; y < src.rows; ++y)
+  {
+      // get pointer to y-th row
+      src_row = src.ptr(y); 
+      dst_row = dst.ptr(y); 
+      for(int x = 0; x < gray_.cols - kernel_size/2; ++x)
+      {
+          sum_f = 0.0;
+          src_pos_in_row = src_row + x;
+          for (int kx = 0; kx < kernel_size; ++kx)
+          {
+              sum_f += *(src_pos_in_row++) * k[kx];
+          }
+          *(dst_row + x + kernel_size/2) = static_cast<int>(sum_f);
+      }
+  }
+  return dst;
 }
 

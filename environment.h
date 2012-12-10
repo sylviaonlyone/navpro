@@ -24,6 +24,14 @@
         (                      \
           exp(-(pow(((MU) - (X)), 2) / (2 * pow((SIGMA), 2)))) / ((SIGMA) * sqrt(2.0 * PI)) \
         )      
+
+//1-D Lanplician Of Gaussian kernel calculation
+//LoG(r) = c(1-r^2/a^2)exp^(-r^2/2a^2)
+//a = 2, c= 2/(3^(1/2)Pi^(1/4))
+#define LoG(R) \
+        (      \
+          (2 / (sqrt(3) * pow(PI, 0.25))) * (1 - ((R) * (R))/(2.0 * 2.0)) * exp(-(((R) * (R)) / (2.0 * 2.0 * 2.0))) \
+        )      
 #if 0
 #define Distance(X1, Y1, X2, Y2) \
         (                        \

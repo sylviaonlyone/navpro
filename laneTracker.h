@@ -34,7 +34,9 @@ public:
   int preprocess             (const char* path);
   Mat edgeDetect              ();
   vector<Mat>& roadColorDetect ();
+  Mat laneMarkerDetect ();
 private:
+  Mat cvLaplicain();
   Mat src_;
   Mat gray_;
   vector<Mat>* pHistVector_;
