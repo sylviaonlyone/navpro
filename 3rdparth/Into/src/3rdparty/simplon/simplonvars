@@ -1,6 +1,0 @@
-# Load this file with
-# . pylonvars
-# to configure the Pylon driver
-export SIMPLON_ROOT=/opt/simplon
-export GENICAM_ROOT_V2_1=$SIMPLON_ROOT/req/genicam
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH${LD_LIBRARY_PATH:+:}$SIMPLON_ROOT/lib64:$GENICAM_ROOT/bin/Linux64_x64

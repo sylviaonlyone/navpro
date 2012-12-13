@@ -1,2 +1,0 @@
-DEPENDENCIES = Io
-EXTENSIONS = currera

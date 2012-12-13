@@ -1,5 +1,0 @@
-Image Analysis Client
-
-This program is a network client that sends a gray-level image to an
-analysis server. It shows both the input image and the analysis
-result. The server must be started before the client.

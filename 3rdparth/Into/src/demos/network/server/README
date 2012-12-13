@@ -1,5 +1,0 @@
-Image Analysis Server
-
-This program is a multi-threaded server that does edge detection on
-images received via HTTP. It responds with the analyzed image. The
-received image is shown in a GUI.

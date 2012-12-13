@@ -1,2 +1,0 @@
-DEPENDENCIES = Camera
-EXTENSIONS = simplon

@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix="/" >
-        <file>fitToView.png</file>
-        <file>help.png</file>
-    </qresource>
-</RCC>
