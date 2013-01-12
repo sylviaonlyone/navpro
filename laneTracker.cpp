@@ -51,13 +51,11 @@ int laneTracker::preprocess(const char* path)
 
 vector<Mat>& laneTracker::roadColorDetect()
 {
-  // TODO Set ROI(Rect of interests) to down-half of image, where I assume 
-  // road would be. May use Road Region Model with more accuratcy
 
   //Rect(x, y ,width, height)
-  Rect roi(0, src_.rows/2, src_.cols, src_.rows/2);  
+  //Rect roi(0, src_.rows/2, src_.cols, src_.rows/2);  
 
-  Mat roadRegion = src_(roi);
+  Mat roadRegion = src_(ROAD_RECT(src_.cols, src_.rows));
 
   /// Separate the image in 3 places ( B, G and R )
   vector<Mat> bgr_planes;
@@ -139,30 +137,44 @@ Mat laneTracker::laneMarkerDetect()
 {
   int kernel_size = 11;
   float k[kernel_size] ;
+
   //calc 1-D kernel;
   int i,j;
   for(i = 0, j = -(kernel_size/2); i <= kernel_size; ++i, ++j)
   {
       k[i] = LoG(j);
-      std::cout<<" k["<<j<<"]: "<<k[i];
+      //std::cout<<" k["<<j<<"]: "<<k[i];
   }
-  std::cout<<std::endl;
-  Mat kernel(3, 1, CV_8U, k);
+  //std::cout<<std::endl;
 
   Mat src, dst;
-  src = gray_;
-  dst.create( src.size(), CV_MAKETYPE(CV_8U, src.channels()));
-  std::cout<<"size: "<<src.size()<<" cols:"<<src.cols<<" rows:"<<src.rows<<std::endl;
+  Mat roadRegion = gray_(ROAD_RECT(gray_.cols, gray_.rows));
+  // blur gray source image
+  // src region only has down-half size of origin gray image
+  GaussianBlur(roadRegion, src, Size(5,5), 0, 0);
+
+  // dst has same size as origin gray image
+  dst.create(gray_.size(), CV_MAKETYPE(CV_8U, src.channels()));
+  dst = Scalar::all(0);
 
   uchar *src_row, *src_pos_in_row, *dst_row;
   
+  // so far, size of Mats are (if image w = 1, h = 1):
+  // gray_      (1, 1)
+  // roadRegion (1, 1/2)
+  // src        (1, 1/2)
+  // dst        (1, 1)
+  std::cout<<"dst size: "<<dst.size()<<" cols:"<<dst.cols<<" rows:"<<dst.rows<<std::endl;
+  std::cout<<"src size: "<<src.size()<<" cols:"<<src.cols<<" rows:"<<src.rows<<std::endl;
   float sum_f;
-  for(int y = 0; y < src.rows; ++y)
+  // y-th for dst and src
+  int yd,ys;
+  for(yd = gray_.rows - src.rows, ys = 0; yd < gray_.rows; ++yd, ++ys)
   {
       // get pointer to y-th row
-      src_row = src.ptr(y); 
-      dst_row = dst.ptr(y); 
-      for(int x = 0; x < gray_.cols - kernel_size/2; ++x)
+      src_row = src.ptr(ys); 
+      dst_row = dst.ptr(yd); 
+      for(int x = gray_.cols - src.cols; x < src.cols - kernel_size/2; ++x)
       {
           sum_f = 0.0;
           src_pos_in_row = src_row + x;
@@ -173,6 +185,7 @@ Mat laneTracker::laneMarkerDetect()
           *(dst_row + x + kernel_size/2) = static_cast<int>(sum_f);
       }
   }
+
   return dst;
 }
 

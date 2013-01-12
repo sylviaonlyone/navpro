@@ -19,6 +19,15 @@
 #include <math.h>
 #include <QtGlobal>
 
+// Create road rectangle from image width, height
+// Return down-half of image
+//   (0, 0)  +------------+
+//           |            |
+//(0, y/2) ->|            |
+//           |            |
+//           +------------+(x, y)
+#define ROAD_RECT(WIDTH, HEIGHT) (Rect(0, HEIGHT/2, WIDTH, HEIGHT/2))
+
 #define PI		3.14159265358979323846	// pi
 #define Gaussian(MU, SIGMA, X) \
         (                      \
