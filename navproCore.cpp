@@ -528,21 +528,21 @@ void navproCore::keyPressEvent(QKeyEvent * e)
         {
             if (cur < fileList.size())
             {
-    int N = 20;
-    int i = 0;
-    //while (i < N)
-    {
-            probe(QString("road/") + fileList[cur]);
-            //update display
-            update();
-            move();
-        //if (i%10 == 0)
-        {
-        //    repaint();
-        }
-        ++i;
-    }
-            ++cur;
+                int N = 20;
+                int i = 0;
+                //while (i < N)
+                {
+                    probe(QString("road/") + fileList[cur]);
+                    //update display
+                    update();
+                    move();
+                    //if (i%10 == 0)
+                    {
+                    //    repaint();
+                    }
+                    ++i;
+                }
+                ++cur;
             }
     
 //            int realWidth = image.width()*2;
@@ -565,112 +565,3 @@ void navproCore::keyPressEvent(QKeyEvent * e)
     //std::cout<<"From: "<<*activeFrom<<" To: "<<*activeTo<<std::endl; 
     //update();
 }
-
-#ifdef LIB_PII
-void navproCore::init()
-{
-  // Create engine
-  pEngine = new PiiEngine;
-
-  try
-  {
-      pEngine->loadPlugin("piiimage"); // PiiImageFileReader/Writer and PiiThresholdingOperation
-      pEngine->loadPlugin("piitransforms"); // PiiHoughTransformOperation
-  }
-  catch (PiiLoadException& ex)
-  {
-      qDebug("Cannot load all necessary plug-in modules: %s", qPrintable(ex.message()));
-      return;
-  }  // Create result image display
-
-  pSourceProbeInput = new PiiProbeInput;
-  pResultProbeInput = new PiiProbeInput;
-  
-  // 1. Create operations
-  //pEdgeDetector = pEngine->createOperation("PiiEdgeDetector");
-  //pHoughTransform = pEngine->createOperation("PiiHoughTransformOperation");
-  pImageFileReader = pEngine->createOperation("PiiImageFileReader");
-  //pImageAnnotator = pEngine->createOperation("PiiImageAnnotator");
-
-  pImageFileWriter = pEngine->createOperation("PiiImageFileWriter");
-  pImageFileWriter->setProperty("outputDirectory", "./");
-  pImageFileWriter->setProperty("extension", "jpg");
-  // 2. Set operation properties 
-
-  //Operation: PiiImageFileReader
-  //pImageFileReader->setProperty("imageType", "GrayScale");
-  pImageFileReader->setProperty("imageType", "Color");
-  pImageFileReader->setProperty("fileNamePattern", QString(":/images/dummy_road.jpg"));
-
-  //Operation: PiiEdgeDetector
-  //pEdgeDetector->setProperty("detector", "SobelDetector");
-
-  //Operation: PiiHoughTransformOperation
-  //pHoughTransform->setProperty("type", "Linear");
-
-  //pHoughTransform->setProperty("startAngle", 5);
-  //pHoughTransform->setProperty("endAngle", 55);
-  //qDebug("%d", pHoughTransform->property("startAngle").toInt());
-  //std::cout<<pHoughTransform->property("startAngle").toInt()<<std::endl;
-
-  //pImageAnnotator->setProperty("annotationType", "Line");
- 
-  // 3. Connnect Output->Input
-
-  // |-------------------------------------------|
-  // |    Output of    | as | Input of           |
-  // |-------------------------------------------|
-  // |FileReader.image | -> | EdgeDetector.image |
-  // |-------------------------------------------|
-  //pImageFileReader->connectOutput("image", pEdgeDetector, "image");
-  
-  // |-------------------------------------------|
-  // |    Output of     | as | Input of          |
-  // |-------------------------------------------|
-  // |Annotator.image   | -> | SourceProbeInput  |
-  // |EdgeDetector.edges| -> | ResultProbeInput  |
-  // |-------------------------------------------|
-  pSourceProbeInput->connectOutput(pImageFileReader->output("image"));
-  //pSourceProbeInput->connectOutput(pImageAnnotator->output("image"));
-  //pResultProbeInput->connectOutput(pEdgeDetector->output("edges"));
-
-  // |---------------------------------------------------------|
-  // |    Output of            | as | Input of                 |
-  // |---------------------------------------------------------|
-  // |ImageFileReader.image    | -> | ImageAnnotator.image     |
-  // |EdgeDetector.edges       | -> | HoughTransfor.image      |
-  // |HoughTransfor.coordinates| -> | ImageAnnotator.annotation|
-  // |---------------------------------------------------------|
-  //pImageFileReader->connectOutput("image", pImageAnnotator, "image");
-  //pEdgeDetector->connectOutput("edges", pHoughTransform, "image");
-  //pEdgeDetector->connectOutput("edges", pImageFileWriter, "image");
-  //pEdgeDetector->connectOutput("edges", pImageAnnotator, "image");
-  //pHoughTransform->connectOutput("coordinates", pImageAnnotator, "annotation");
-  pResultProbeInput->connectOutput(pImageAnnotator->output("image"));
-
-  // 4. Connnect SourceProbeInput, ResultProbeInput to display
-  pResultImageDisplay = new PiiImageDisplay(this);
-  pResultImageDisplay->setObjectName(QString::fromUtf8("pResultImageDisplay"));
-  QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  sizePolicy.setHorizontalStretch(0);
-  sizePolicy.setVerticalStretch(0);
-  sizePolicy.setHeightForWidth(pResultImageDisplay->sizePolicy().hasHeightForWidth());
-
-  pSourceImageDisplay = new PiiImageDisplay(this);
-  pSourceImageDisplay->setObjectName(QString::fromUtf8("pSourceImageDisplay"));
-  sizePolicy.setHeightForWidth(pSourceImageDisplay->sizePolicy().hasHeightForWidth());
-  pSourceImageDisplay->setSizePolicy(sizePolicy);
-
-  connect(pSourceProbeInput, SIGNAL(objectReceived(PiiVariant)), pSourceImageDisplay, SLOT(setImage(PiiVariant)));
-  connect(pResultProbeInput, SIGNAL(objectReceived(PiiVariant)), pResultImageDisplay, SLOT(setImage(PiiVariant)));
-
-  pResultImageDisplay->setProperty("displayType", "AutoScale");
-
-  QHBoxLayout *pLayout = new QHBoxLayout;
-  pLayout->addWidget(pSourceImageDisplay);
-  pLayout->addWidget(pResultImageDisplay);
-
-  setLayout(pLayout);
-}
-#endif
-
