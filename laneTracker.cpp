@@ -18,7 +18,7 @@
 laneTracker::laneTracker()
 {
   try{
-    pHistVector_ = new vector<Mat>;
+    pHistVector_ = new std::vector<cv::Mat>;
   }
   catch(std::bad_alloc& ba)
   {
@@ -33,32 +33,32 @@ laneTracker::~laneTracker()
 
 int laneTracker::preprocess(const char* path)
 {
-  Mat dstRGB;
+  cv::Mat dstRGB;
   //const char* window_name = "Edge Map";
-  src_ = imread(path);
+  src_ = cv::imread(path);
   if (!src_.data)
   {
     std::cerr<<"src image NULL Error!";
     return -1;
   }
 
-  //std::cout<<"image size:"<<src.size()<<" type:"<<src.type()<<std::endl;
+  std::cout<<"image size:"<<src_.size()<<" type:"<<src_.type()<<std::endl;
 
   cvtColor(src_, gray_, CV_BGR2GRAY);
 
   return 0;
 }
 
-vector<Mat>& laneTracker::roadColorDetect()
+std::vector<cv::Mat>& laneTracker::roadColorDetect()
 {
 
   //Rect(x, y ,width, height)
   //Rect roi(0, src_.rows/2, src_.cols, src_.rows/2);  
 
-  Mat roadRegion = src_(ROAD_RECT(src_.cols, src_.rows));
+  cv::Mat roadRegion = src_(ROAD_RECT(src_.cols, src_.rows));
 
   /// Separate the image in 3 places ( B, G and R )
-  vector<Mat> bgr_planes;
+  std::vector<cv::Mat> bgr_planes;
   split(roadRegion, bgr_planes);
 
   /// Establish the number of bins
@@ -70,23 +70,23 @@ vector<Mat>& laneTracker::roadColorDetect()
 
   bool uniform = true; bool accumulate = false;
 
-  Mat b_hist, g_hist, r_hist;
-  Mat b_blur, g_blur, r_blur;
+  cv::Mat b_hist, g_hist, r_hist;
+  cv::Mat b_blur, g_blur, r_blur;
 
-  GaussianBlur(bgr_planes[0], b_blur, Size(5,5), 0, 0);
-  GaussianBlur(bgr_planes[1], g_blur, Size(5,5), 0, 0);
-  GaussianBlur(bgr_planes[2], r_blur, Size(5,5), 0, 0);
+  GaussianBlur(bgr_planes[0], b_blur, cv::Size(5,5), 0, 0);
+  GaussianBlur(bgr_planes[1], g_blur, cv::Size(5,5), 0, 0);
+  GaussianBlur(bgr_planes[2], r_blur, cv::Size(5,5), 0, 0);
   //
   /// Compute the histograms:
-  calcHist( &b_blur, 1, 0, Mat(), b_hist, 1, &histSize, &histRange, uniform, accumulate );
-  calcHist( &g_blur, 1, 0, Mat(), g_hist, 1, &histSize, &histRange, uniform, accumulate );
-  calcHist( &r_blur, 1, 0, Mat(), r_hist, 1, &histSize, &histRange, uniform, accumulate );
+  calcHist( &b_blur, 1, 0, cv::Mat(), b_hist, 1, &histSize, &histRange, uniform, accumulate );
+  calcHist( &g_blur, 1, 0, cv::Mat(), g_hist, 1, &histSize, &histRange, uniform, accumulate );
+  calcHist( &r_blur, 1, 0, cv::Mat(), r_hist, 1, &histSize, &histRange, uniform, accumulate );
 
 
   /// Normalize the result to [ 0, 100 ], percentage representation
-  normalize(b_hist, b_hist, 0, 100, NORM_MINMAX, -1, Mat() );
-  normalize(g_hist, g_hist, 0, 100, NORM_MINMAX, -1, Mat() );
-  normalize(r_hist, r_hist, 0, 100, NORM_MINMAX, -1, Mat() );
+  normalize(b_hist, b_hist, 0, 100, cv::NORM_MINMAX, -1, cv::Mat() );
+  normalize(g_hist, g_hist, 0, 100, cv::NORM_MINMAX, -1, cv::Mat() );
+  normalize(r_hist, r_hist, 0, 100, cv::NORM_MINMAX, -1, cv::Mat() );
 
   // TODO remember to clear vector in the next around
   pHistVector_->push_back(b_hist);
@@ -96,44 +96,45 @@ vector<Mat>& laneTracker::roadColorDetect()
   return *pHistVector_;
 }
 
-Mat laneTracker::edgeDetect()
+cv::Mat laneTracker::edgeDetect()
 {
-  Mat edges, dstRGB;
+  cv::Mat edges, dstRGB;
 
-  GaussianBlur(gray_, edges, Size(5,5), 0, 0);
+  GaussianBlur(gray_, edges, cv::Size(5,5), 0, 0);
 
   int lowThreshold = 100;
   int ratio = 3;
   int kernel_size = 3;
   Canny(edges, edges, lowThreshold, lowThreshold*ratio, kernel_size);
-  Mat dst;
-  dst = Scalar::all(0);
+  cv::Mat dst;
+  dst = cv::Scalar::all(0);
 
   //! copies "src" elements to "dst" that are marked with non-zero "edges" elements.
   src_.copyTo(dst, edges);
 
   cvtColor(dst,dstRGB, CV_BGR2RGB);
 
+  std::cout<<"edge image size:"<<dstRGB.size()<<" type:"<<dstRGB.type()<<std::endl;
   return dstRGB;
 }
 
-Mat laneTracker::cvLaplicain()
+cv::Mat laneTracker::cvLaplicain()
 {
-  Mat src, dst, abs_dst;
+  cv::Mat src, dst, abs_dst;
 
-  GaussianBlur(gray_, src, Size(5,5), 0, 0);
+  GaussianBlur(gray_, src, cv::Size(5,5), 0, 0);
 
   int kernel_size = 3;
   int scale = 1;
   int delta = 0;
   int ddepth = CV_16S;
-  Laplacian(src, dst, ddepth, kernel_size, scale, delta, BORDER_DEFAULT);
+  Laplacian(src, dst, ddepth, kernel_size, scale, delta, cv::BORDER_DEFAULT);
   convertScaleAbs(dst, abs_dst);
 
   return abs_dst;
 }
 
-Mat laneTracker::laneMarkerDetect()
+cv::Mat laneTracker::laneMarkerDetect()
 {
   int kernel_size = 11;
   float k[kernel_size] ;
@@ -147,15 +148,15 @@ Mat laneTracker::laneMarkerDetect()
   }
   //std::cout<<std::endl;
 
-  Mat src, dst;
-  Mat roadRegion = gray_(ROAD_RECT(gray_.cols, gray_.rows));
+  cv::Mat src, dst;
+  cv::Mat roadRegion = gray_(ROAD_RECT(gray_.cols, gray_.rows));
   // blur gray source image
   // src region only has down-half size of origin gray image
-  GaussianBlur(roadRegion, src, Size(5,5), 0, 0);
+  GaussianBlur(roadRegion, src, cv::Size(5,5), 0, 0);
 
   // dst has same size as origin gray image
   dst.create(gray_.size(), CV_MAKETYPE(CV_8U, src.channels()));
-  dst = Scalar::all(0);
+  dst = cv::Scalar::all(0);
 
   uchar *src_row, *src_pos_in_row, *dst_row;
   

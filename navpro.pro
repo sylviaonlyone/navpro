@@ -9,13 +9,17 @@ QMAKE_CFLAGS += -Werror
 
 #RESOURCES += navpro.qrc
 HEADERS += laneTracker.h \
+           inputManager.h \
            particleFilter.h \
-           navproCore.h
+           navproCore.h \
+           mainwindow.h
 SOURCES += main.cpp \
            laneTracker.cpp \
+           inputManager.cpp \
            particleFilter.cpp \
-           navproCore.cpp
-#FORMS += navpro.ui
+           navproCore.cpp \
+           mainwindow.cpp
+FORMS += mainwindow.ui
 
 DEFINES += QT_NO_DEBUG_OUTPUT
 
@@ -26,6 +30,7 @@ INCLUDEPATH += $$CV_INCLUDEPATH
                
 DEPENDPATH += INCLUDEPATH
 
+#LIBS += -L$$CV_LIBPATH -lopencv_core -lopencv_highgui -lopencv_imgproc
 LIBS += -L$$CV_LIBPATH -lopencv_core -lopencv_highgui -lopencv_imgproc
 
 QMAKE_LFLAGS += -Wl,-rpath,$$CV_LIBPATH
@@ -88,4 +93,3 @@ CONFIG(release, debug|release) {
 
 #INCLUDEPATH += $$CTX_INCLUDEPATH
 #DEPENDPATH += $$CTX_INCLUDEPATH
-

@@ -21,17 +21,28 @@
 #include "navproCore.h"
 #include "laneTracker.h"
 #include "particleFilter.h"
-//#define DEBUG_LOG
+#include "inputManager.h"
+#include "mainwindow.h"
+#define DEBUG_LOG
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
+    QString path = QString("road/");
+
+    //opencv image processing class
     laneTracker tracker;
     particleFilter filter;
-    navproCore instance(&tracker, &filter);
+    inputManager input(path);
 
-    instance.probe(QString("./road/1.JPG"));
-    instance.show();
+    navproCore core(&tracker, &filter, &input);
+
+    //main window should know core for display
+    mainwindow window(&core);
+
+    //core.probe();
+    window.show();
+    //core.show();
     return a.exec();
 }

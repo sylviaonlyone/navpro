@@ -20,7 +20,17 @@
 #include "navproCore.h"
 #include <QDir>
 
-navproCore::navproCore(laneTracker* tracker, particleFilter* filter, int width, int height):
+#define OPENCV_TO_QT_RGB888(CV_IMAGE) \
+        (QImage((const unsigned char*)CV_IMAGE.data, \
+                CV_IMAGE.cols, CV_IMAGE.rows,\
+                CV_IMAGE.step, QImage::Format_RGB888))
+
+#define OPENCV_TO_QT_INDEX8(CV_IMAGE) \
+        (QImage((const unsigned char*)CV_IMAGE.data, \
+                CV_IMAGE.cols, CV_IMAGE.rows, \
+                QImage::Format_Indexed8))
+
+navproCore::navproCore(laneTracker* tracker, particleFilter* filter, inputManager* input):
     hueFrom(20),
     hueTo(200),
     saturationFrom(5),
@@ -34,37 +44,55 @@ navproCore::navproCore(laneTracker* tracker, particleFilter* filter, int width, 
     active(HUE),
     pTracker(tracker),
     pFilter(filter),
-    path("./road/1.JPG")
+    p_input_manager_(input),
+    p_image_origin_(NULL),
+    p_image_edge_(NULL),
+    p_image_marker_(NULL),
+    p_image_color_(NULL)
 {
-    //searchRoad();
-    QDir dir("road","*.jpg");
-    fileList = dir.entryList();
-#if 0
-    //image.load(QString(path));
-    int centerX = int(image.width() * DEFAULT_X_PROPOTION);
-    int centerY = int(image.height() * DEFAULT_Y_PROPOTION);
+  //init images for display
+  p_image_origin_ = new QImage();
+  p_image_edge_ = new QImage();
+  p_image_marker_ = new QImage();
+  p_image_color_ = new QImage();
 
-    int rangeX = image.width() * DEFAULT_SAMPLING_RANGE_PERCENTAGE/100;
-    int rangeY = image.height() * DEFAULT_SAMPLING_RANGE_PERCENTAGE/100;
+  initImages();
+}
 
-    //default pos(x,y), will be moved by key events
-    posX = centerX - rangeX / 2;
-    posY = centerY - rangeY / 2;
+navproCore::~navproCore()
+{
+  delete p_image_origin_;
+  delete p_image_edge_;
+  delete p_image_marker_;
+  delete p_image_color_;
+}
 
-    int realWidth = (width >= image.width() ? width : image.width()*2);
-    int realHeight = height >= image.height() ? height : image.height();
+//init images for processing and display
+void navproCore::initImages()
+{
+  //check pointers
+  if (!p_image_origin_ || !p_image_edge_  || !p_image_marker_ || !p_image_color_ )
+    return;
 
-    if (DEFAULT_FULL_WIDTH <= realWidth)
-    {
-        //cut size to half if it's too large to display
-        realWidth >>= 1;
-        realHeight >>=1;
-    }
-    //std::cout<<realWidth<<std::endl; 
-    //getRange();
-    //resize(realWidth, realHeight);
-#endif    
-    resize(width/2,height/2);
+  if (p_input_manager_->getCurrentImage(*p_image_origin_))
+  {
+      //process input image
+      QString path;
+
+      //get current image path
+      p_input_manager_->getCurrentImagePath(path);
+
+      //feed image pat hto lane tracker
+      pTracker->preprocess(path.toAscii().data());
+      //detect edge
+      cv_edge_ = pTracker->edgeDetect();
+
+      *p_image_edge_ = OPENCV_TO_QT_RGB888(cv_edge_);
+
+      //detect lane marker
+      cv_maker_ = pTracker->laneMarkerDetect();
+      *p_image_marker_ = OPENCV_TO_QT_INDEX8(cv_maker_);
+  }
 }
 
 void navproCore::paintEvent(QPaintEvent *event)
@@ -83,15 +111,19 @@ void navproCore::paintEvent(QPaintEvent *event)
     for (int i = 0; i < 256; i++) colorTable.push_back(qRgb(i, i, i));
     
 
-    if (!cvImage.data)
+    //if (!cvImage.data)
     {
-        output = QImage(path.toAscii().data());
+        //TODO output from InputManager
+        //output = QImage(path.toAscii().data());
+        //getNextImage(output);
     }
-    else
+    //else
     {
+        //RGB888 used for result image from edgeDetect()
         //output = QImage((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
-        output = QImage((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, QImage::Format_Indexed8);
-        output.setColorTable(colorTable);
+        //Indexed8 used for result image from laneMarkerDetect()
+     //   output = QImage((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, QImage::Format_Indexed8);
+     //   output.setColorTable(colorTable);
     }
 
     QRgb p;
@@ -130,16 +162,18 @@ void navproCore::paintEvent(QPaintEvent *event)
         }
     }
 #endif
-    painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(output.scaledToWidth(output.width()/2)));
+    
+    painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(p_image_edge_->scaledToWidth(p_image_edge_->width()/2)));
+    //painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(output.scaledToWidth(output.width()/2)));
     //painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(roadcolor.scaledToWidth(output.width()/2)));
 
-    //draw particles
-    //const M_Prob* pArray = pFilter->getParticles();
-    //for(int i = 0; i < particleFilter::NUMBER_OF_PARTICLES; ++i)
-    {
-    //    painter.drawEllipse(QPoint(pArray[i].x/2, pArray[i].y/2), 2, 2);
-    }
 #if 0
+    //draw particles
+    const M_Prob* pArray = pFilter->getParticles();
+    for(int i = 0; i < particleFilter::NUMBER_OF_PARTICLES; ++i)
+    {
+        painter.drawEllipse(QPoint(pArray[i].x/2, pArray[i].y/2), 2, 2);
+    }
     //thresholding
     for (i = 0; i < image.width(); ++i)
     {
@@ -170,29 +204,33 @@ void navproCore::paintEvent(QPaintEvent *event)
 //    painter.drawRect(posX - diffX , posY - diffY , rangeX, rangeY);
 }
 
-void navproCore::probe(const QString& path)
+void navproCore::probe()
 {
-    if(pTracker->preprocess(path.toAscii().data()) == -1)
+    //if(pTracker->preprocess(path.toAscii().data()) == -1)
+    //if(pTracker->preprocess("road/1.JPG") == -1)
+    if(pTracker->preprocess("road/1.JPG") == -1)
     {
         std::cerr<<"Preprocessing error!!!";
         return;
     }
     //cvImage = pTracker->edgeDetect();
 
+    //QImage edges((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
+    //pFilter->measurementUpdate(edges); 
     //cvImage = pTracker->preprocess("road/1.JPG");
     //pFilter->measurementUpdate(pTracker->roadColorDetect(), QImage(path)); 
 
     // 3-D array stores R,G,B probabilities
-
     //histVec = pTracker->roadColorDetect();
-    cvImage = pTracker->laneMarkerDetect();
 
-    //QImage edges((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
+    //cvImage = pTracker->laneMarkerDetect();
+
+    //QImage landMarker((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
     //QImage edges(1600, 1200, QImage::Format_RGB888);
     //edges.fill(0);
     //edges.setPixel(800, 600, 0xffffff);
 
-    //pFilter->measurementUpdate(edges); 
+    //pFilter->measurementUpdate(landMarker); 
     //pFilter->resample();
 }
 
@@ -522,43 +560,29 @@ void navproCore::keyPressEvent(QKeyEvent * e)
         }
       case Qt::Key_N:
        {
-        static int cur = 0;
-        //std::cout<<"Cur: "<<cur<<" of : "<<fileList.size()<<std::endl; 
-        if (fileList.size() > 0)
-        {
-            if (cur < fileList.size())
-            {
-                int N = 20;
-                int i = 0;
-                //while (i < N)
-                {
-                    probe(QString("road/") + fileList[cur]);
-                    //update display
-                    update();
-                    move();
-                    //if (i%10 == 0)
-                    {
-                    //    repaint();
-                    }
-                    ++i;
-                }
-                ++cur;
-            }
-    
-//            int realWidth = image.width()*2;
-//            int realHeight = image.height();
-//    
-//            if (DEFAULT_FULL_WIDTH <= realWidth)
-//            {
-//                //cut size to half if it's too large to display
-//                realWidth >>= 1;
-//                realHeight >>=1;
-//            }
-//    
-//            std::cout<<realWidth<<std::endl; 
-//            resize(realWidth, realHeight);
-//            getRange();
-        }
+        //static int cur = 0;
+        //if (fileList.size() > 0)
+        //{
+        //    if (cur < fileList.size())
+        //    {
+        //        int N = 10;
+        //        int i = 0;
+        //        while (i < N)
+        //        {
+        //            //probe(QString("road/") + fileList[cur]);
+        //            probe();
+        //            //update display
+        //            update();
+        //            //move();
+        //            //if (i%10 == 0)
+        //            {
+        //            //    repaint();
+        //            }
+        //            ++i;
+        //        }
+        //        //++cur;
+        //    }
+        //}
         break;
        }
     }

@@ -26,7 +26,7 @@
 //(0, y/2) ->|            |
 //           |            |
 //           +------------+(x, y)
-#define ROAD_RECT(WIDTH, HEIGHT) (Rect(0, HEIGHT/2, WIDTH, HEIGHT/2))
+#define ROAD_RECT(WIDTH, HEIGHT) (cv::Rect(0, HEIGHT/2, WIDTH, HEIGHT/2))
 
 #define PI		3.14159265358979323846	// pi
 #define Gaussian(MU, SIGMA, X) \
@@ -51,5 +51,8 @@
 #define RGB2CB(clr) (0.148*qRed((clr))-0.291*qGreen((clr))+0.439*qBlue((clr))+128)
 
 #define RGB2CR(clr) (0.439*qRed((clr))-0.368*qGreen((clr))+0.071*qBlue((clr))+128)
+
+#define SUCCESS 0
+#define ERROR   1
 
 #endif  //NAVPRO_ENVIRONMENT_H_

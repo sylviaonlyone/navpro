@@ -23,8 +23,6 @@
 #include "particleFilter.h"
 #include <iostream>
 
-using namespace cv;
-
 class laneTracker 
 {
 public:
@@ -32,13 +30,13 @@ public:
   ~laneTracker();
 
   int preprocess             (const char* path);
-  Mat edgeDetect              ();
-  vector<Mat>& roadColorDetect ();
-  Mat laneMarkerDetect ();
+  cv::Mat edgeDetect              ();
+  std::vector<cv::Mat>& roadColorDetect ();
+  cv::Mat laneMarkerDetect ();
 private:
-  Mat cvLaplicain();
-  Mat src_;
-  Mat gray_;
-  vector<Mat>* pHistVector_;
+  cv::Mat cvLaplicain();
+  cv::Mat src_;
+  cv::Mat gray_;
+  std::vector<cv::Mat>* pHistVector_;
 };
 #endif //NAVPRO_LANETRACKER_H_
