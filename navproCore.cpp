@@ -92,6 +92,11 @@ void navproCore::initImages()
       //detect lane marker
       cv_maker_ = pTracker->laneMarkerDetect();
       *p_image_marker_ = OPENCV_TO_QT_INDEX8(cv_maker_);
+      //set color table used for 8-bits image, should do this only once
+      QVector<QRgb> colorTable;
+      for (int i = 0; i < 256; i++) colorTable.push_back(qRgb(i, i, i));
+
+      p_image_marker_->setColorTable(colorTable);
   }
 }
 
@@ -122,8 +127,8 @@ void navproCore::paintEvent(QPaintEvent *event)
         //RGB888 used for result image from edgeDetect()
         //output = QImage((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
         //Indexed8 used for result image from laneMarkerDetect()
-     //   output = QImage((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, QImage::Format_Indexed8);
-     //   output.setColorTable(colorTable);
+        //output = QImage((const unsigned char*)cvImage.data, cvImage.cols, cvImage.rows, QImage::Format_Indexed8);
+        //output.setColorTable(colorTable);
     }
 
     QRgb p;
@@ -163,7 +168,7 @@ void navproCore::paintEvent(QPaintEvent *event)
     }
 #endif
     
-    painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(p_image_edge_->scaledToWidth(p_image_edge_->width()/2)));
+    //painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(p_image_edge_->scaledToWidth(p_image_edge_->width()/2)));
     //painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(output.scaledToWidth(output.width()/2)));
     //painter.drawPixmap(QPoint(0, 0), QPixmap::fromImage(roadcolor.scaledToWidth(output.width()/2)));
 
