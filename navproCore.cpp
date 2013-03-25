@@ -17,8 +17,9 @@
 ===============================================================================
 **/
 
-#include "navproCore.h"
+#include <cassert>
 #include <QDir>
+#include "navproCore.h"
 
 #define OPENCV_TO_QT_RGB888(CV_IMAGE) \
         (QImage((const unsigned char*)CV_IMAGE.data, \
@@ -45,18 +46,29 @@ navproCore::navproCore(laneTracker* tracker, particleFilter* filter, inputManage
     pTracker(tracker),
     pFilter(filter),
     p_input_manager_(input),
+    p_histogram_(NULL),
     p_image_origin_(NULL),
     p_image_edge_(NULL),
     p_image_marker_(NULL),
     p_image_color_(NULL)
 {
-  //init images for display
-  p_image_origin_ = new QImage();
-  p_image_edge_ = new QImage();
-  p_image_marker_ = new QImage();
-  p_image_color_ = new QImage();
+    try {
+        //init images for display
+        p_image_origin_ = new QImage();
+        p_image_edge_ = new QImage();
+        p_image_marker_ = new QImage();
+        p_image_color_ = new QImage();
+    }
+    catch (std::bad_alloc&)
+    {
+        std::cerr<<"Bad alloc!"<<std::endl;
+        throw;
+    }
 
-  initImages();
+    //set color table used for 8-bits image, should do this only once
+    for (int i = 0; i < 256; i++) colorTable.push_back(qRgb(i, i, i));
+ 
+    probe();
 }
 
 navproCore::~navproCore()
@@ -65,39 +77,6 @@ navproCore::~navproCore()
   delete p_image_edge_;
   delete p_image_marker_;
   delete p_image_color_;
-}
-
-//init images for processing and display
-void navproCore::initImages()
-{
-  //check pointers
-  if (!p_image_origin_ || !p_image_edge_  || !p_image_marker_ || !p_image_color_ )
-    return;
-
-  if (p_input_manager_->getCurrentImage(*p_image_origin_))
-  {
-      //process input image
-      QString path;
-
-      //get current image path
-      p_input_manager_->getCurrentImagePath(path);
-
-      //feed image pat hto lane tracker
-      pTracker->preprocess(path.toAscii().data());
-      //detect edge
-      cv_edge_ = pTracker->edgeDetect();
-
-      *p_image_edge_ = OPENCV_TO_QT_RGB888(cv_edge_);
-
-      //detect lane marker
-      cv_maker_ = pTracker->laneMarkerDetect();
-      *p_image_marker_ = OPENCV_TO_QT_INDEX8(cv_maker_);
-      //set color table used for 8-bits image, should do this only once
-      QVector<QRgb> colorTable;
-      for (int i = 0; i < 256; i++) colorTable.push_back(qRgb(i, i, i));
-
-      p_image_marker_->setColorTable(colorTable);
-  }
 }
 
 void navproCore::paintEvent(QPaintEvent *event)
@@ -211,8 +190,90 @@ void navproCore::paintEvent(QPaintEvent *event)
 
 void navproCore::probe()
 {
+    //check pointers available
+    assert(p_image_origin_);
+    assert(p_image_edge_);
+    assert(p_image_marker_);
+    assert(p_image_color_);
+
+    if (p_input_manager_->getCurrentImage(*p_image_origin_))
+    {
+        //process input image
+        QString path;
+ 
+        //get current image path
+        p_input_manager_->getCurrentImagePath(path);
+ 
+        //feed image pat hto lane tracker
+        int error = pTracker->preprocess(path.toAscii().data());
+        assert(!error);
+
+        //detect edge
+        cv_edge_ = pTracker->edgeDetect();
+ 
+        *p_image_edge_ = OPENCV_TO_QT_RGB888(cv_edge_);
+
+        assert(pFilter);
+        pFilter->measurementUpdate(*p_image_edge_);
+ 
+        //detect lane marker
+        cv_maker_ = pTracker->laneMarkerDetect();
+        *p_image_marker_ = OPENCV_TO_QT_INDEX8(cv_maker_);
+        //set color table used for 8-bits image
+        p_image_marker_->setColorTable(colorTable);
+
+        pFilter->measurementUpdate(*p_image_marker_);
+
+        //detect color
+        //array stores R,G,B probabilities
+        p_histogram_ = pTracker->roadColorDetect();
+        for(int i = 0 ;i <256;i++)
+        {
+            std::cout<<"r:"<<(*p_histogram_)[2].at<float>(i);
+            std::cout<<" g:"<<(*p_histogram_)[1].at<float>(i);
+            std::cout<<" b:"<<(*p_histogram_)[0].at<float>(i);
+            std::cout<<std::endl;
+        }
+
+        QRgb p;
+        int gray;
+        float r, g,b;
+        int width = p_image_origin_->width();
+        int height = p_image_origin_->height();
+
+        float array[width][height];
+        float max = 0.0;
+        for(int x = 0; x < width; x++)
+        {
+            for(int y = 0; y < height; y++)
+            {
+                p = p_image_origin_->pixel(x, y);
+                b = (*p_histogram_)[0].at<float>(qBlue(p))/100.0;
+                g = (*p_histogram_)[1].at<float>(qGreen(p))/100.0;
+                r = (*p_histogram_)[2].at<float>(qRed(p))/100.0;
+                array[x][y] = r*g*b;
+                if (array[x][y] > max) max = array[x][y];
+            }
+        }
+        std::cout<<"max:"<<max<<std::endl;
+
+        *p_image_color_ = QImage (width, height, QImage::Format_RGB888);
+        p_image_color_->fill(0);
+
+        for(int x = 0; x < width; x++)
+        {
+            for(int y = 0; y < height; y++)
+            {
+              array[x][y] = array[x][y]/max;
+              gray = array[x][y] * 255;
+              assert(gray >=0 && gray < 256);
+              p_image_color_->setPixel(x, y, qRgb(gray, gray, gray));
+            }
+        }
+    }
+
+#if 0
     //if(pTracker->preprocess(path.toAscii().data()) == -1)
-    //if(pTracker->preprocess("road/1.JPG") == -1)
     if(pTracker->preprocess("road/1.JPG") == -1)
     {
         std::cerr<<"Preprocessing error!!!";
@@ -237,6 +298,7 @@ void navproCore::probe()
 
     //pFilter->measurementUpdate(landMarker); 
     //pFilter->resample();
+#endif
 }
 
 void navproCore::move()

@@ -78,8 +78,6 @@ protected:
   void paintEvent(QPaintEvent *event);
   void keyPressEvent(QKeyEvent * e);
 private:
-  void initImages();
-
   // HSV + Cb Cr method
   void setHueFrom(int hue){hueFrom = hue;}
   void setHueTo(int hue){hueTo = hue;}
@@ -108,13 +106,16 @@ private:
   laneTracker* pTracker;
   particleFilter* pFilter;
   inputManager* p_input_manager_;
-  std::vector<cv::Mat> histVec;
+  std::vector<cv::Mat>* p_histogram_;
 
   //Images for display
   QImage *p_image_origin_;
   QImage *p_image_edge_;
   QImage *p_image_marker_;
   QImage *p_image_color_;
+
+  //color table for lane marker index8 QImage
+  QVector<QRgb> colorTable;
 
   //Images for processing
   cv::Mat cv_edge_;

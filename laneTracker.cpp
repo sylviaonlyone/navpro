@@ -28,7 +28,7 @@ laneTracker::laneTracker()
 
 laneTracker::~laneTracker()
 {
-
+  delete pHistVector_;
 }
 
 int laneTracker::preprocess(const char* path)
@@ -49,9 +49,8 @@ int laneTracker::preprocess(const char* path)
   return 0;
 }
 
-std::vector<cv::Mat>& laneTracker::roadColorDetect()
+std::vector<cv::Mat>* laneTracker::roadColorDetect()
 {
-
   //Rect(x, y ,width, height)
   //Rect roi(0, src_.rows/2, src_.cols, src_.rows/2);  
 
@@ -61,11 +60,13 @@ std::vector<cv::Mat>& laneTracker::roadColorDetect()
   std::vector<cv::Mat> bgr_planes;
   split(roadRegion, bgr_planes);
 
-  /// Establish the number of bins
+  /// Establish the number of bins, x-axis
   int histSize = 256;
 
-  /// Set the ranges ( for B,G,R) )
-  float range[] = { 0, 256 } ;
+  /// Set the ranges ( for B,G,R) ), y-axis
+  // for example, there are N blue pixels at 150 [0, 255], and N is the max
+  // from [0, 255], then N is max of the range:100
+  float range[] = { 0, 100 } ;
   const float* histRange = { range };
 
   bool uniform = true; bool accumulate = false;
@@ -88,12 +89,13 @@ std::vector<cv::Mat>& laneTracker::roadColorDetect()
   normalize(g_hist, g_hist, 0, 100, cv::NORM_MINMAX, -1, cv::Mat() );
   normalize(r_hist, r_hist, 0, 100, cv::NORM_MINMAX, -1, cv::Mat() );
 
-  // TODO remember to clear vector in the next around
+  // clear vector first
+  pHistVector_->clear();
   pHistVector_->push_back(b_hist);
   pHistVector_->push_back(g_hist);
   pHistVector_->push_back(r_hist);
 
-  return *pHistVector_;
+  return pHistVector_;
 }
 
 cv::Mat laneTracker::edgeDetect()

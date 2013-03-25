@@ -29,9 +29,9 @@ public:
   laneTracker();
   ~laneTracker();
 
-  int preprocess             (const char* path);
-  cv::Mat edgeDetect              ();
-  std::vector<cv::Mat>& roadColorDetect ();
+  int preprocess (const char* path);
+  cv::Mat edgeDetect ();
+  std::vector<cv::Mat>* roadColorDetect ();
   cv::Mat laneMarkerDetect ();
 private:
   cv::Mat cvLaplicain();
