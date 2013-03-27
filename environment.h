@@ -48,11 +48,15 @@
         )
 #endif            
 
-#define RGB2CB(clr) (0.148*qRed((clr))-0.291*qGreen((clr))+0.439*qBlue((clr))+128)
-
-#define RGB2CR(clr) (0.439*qRed((clr))-0.368*qGreen((clr))+0.071*qBlue((clr))+128)
+//RGB8 to YCbCr:
+//Cb = 128-(37.945/256)R-(74.494/256)G+(112.439/256)B
+//Cr = 128+(112.439/256)R-(94.154/256)G-(18.285/256)B
+//source from:
+//http://en.wikipedia.org/wiki/YCbCr
+#define RGB2CB(clr) (128-0.148*qRed((clr))-0.291*qGreen((clr))+0.439*qBlue((clr)))
+#define RGB2CR(clr) (128+0.439*qRed((clr))-0.368*qGreen((clr))-0.071*qBlue((clr)))
 
 #define SUCCESS 0
-#define ERROR   1
+#define ERROR   -1
 
 #endif  //NAVPRO_ENVIRONMENT_H_

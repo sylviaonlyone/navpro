@@ -54,19 +54,24 @@ std::vector<cv::Mat>* laneTracker::roadColorDetect()
   //Rect(x, y ,width, height)
   //Rect roi(0, src_.rows/2, src_.cols, src_.rows/2);  
 
+  //TODO dynamicly adjust road_rect
   cv::Mat roadRegion = src_(ROAD_RECT(src_.cols, src_.rows));
+
+  cv::Mat ycrcb;
+  cvtColor(roadRegion, ycrcb, CV_BGR2YCrCb);
 
   /// Separate the image in 3 places ( B, G and R )
   std::vector<cv::Mat> bgr_planes;
   split(roadRegion, bgr_planes);
 
+  std::vector<cv::Mat> ycbcr_planes;
+  split(ycrcb, ycbcr_planes);
+
   /// Establish the number of bins, x-axis
   int histSize = 256;
 
-  /// Set the ranges ( for B,G,R) ), y-axis
-  // for example, there are N blue pixels at 150 [0, 255], and N is the max
-  // from [0, 255], then N is max of the range:100
-  float range[] = { 0, 100 } ;
+  /// Set the ranges ( for B,G,R) )
+  float range[] = { 0, 256 } ;
   const float* histRange = { range };
 
   bool uniform = true; bool accumulate = false;
@@ -74,27 +79,40 @@ std::vector<cv::Mat>* laneTracker::roadColorDetect()
   cv::Mat b_hist, g_hist, r_hist;
   cv::Mat b_blur, g_blur, r_blur;
 
+  cv::Mat y_hist, cr_hist, cb_hist;
+  cv::Mat y_blur, cr_blur, cb_blur;
+
   GaussianBlur(bgr_planes[0], b_blur, cv::Size(5,5), 0, 0);
   GaussianBlur(bgr_planes[1], g_blur, cv::Size(5,5), 0, 0);
   GaussianBlur(bgr_planes[2], r_blur, cv::Size(5,5), 0, 0);
-  //
+
+  GaussianBlur(ycbcr_planes[0], y_blur, cv::Size(5,5), 0, 0);
+  GaussianBlur(ycbcr_planes[1], cr_blur, cv::Size(5,5), 0, 0);
+  GaussianBlur(ycbcr_planes[2], cb_blur, cv::Size(5,5), 0, 0);
   /// Compute the histograms:
   calcHist( &b_blur, 1, 0, cv::Mat(), b_hist, 1, &histSize, &histRange, uniform, accumulate );
   calcHist( &g_blur, 1, 0, cv::Mat(), g_hist, 1, &histSize, &histRange, uniform, accumulate );
   calcHist( &r_blur, 1, 0, cv::Mat(), r_hist, 1, &histSize, &histRange, uniform, accumulate );
 
+  calcHist( &y_blur, 1, 0, cv::Mat(), y_hist, 1, &histSize, &histRange, uniform, accumulate );
+  calcHist( &cr_blur, 1, 0, cv::Mat(), cr_hist, 1, &histSize, &histRange, uniform, accumulate );
+  calcHist( &cb_blur, 1, 0, cv::Mat(), cb_hist, 1, &histSize, &histRange, uniform, accumulate );
 
-  /// Normalize the result to [ 0, 100 ], percentage representation
+  /// Normalize the result to [ 0, 100 ], percentage representation,, y-axis
+  // for example, there are N blue pixels at 150 [0, 255], and N is the max
+  // from [0, 255], then N is max of the range:100
   normalize(b_hist, b_hist, 0, 100, cv::NORM_MINMAX, -1, cv::Mat() );
   normalize(g_hist, g_hist, 0, 100, cv::NORM_MINMAX, -1, cv::Mat() );
   normalize(r_hist, r_hist, 0, 100, cv::NORM_MINMAX, -1, cv::Mat() );
 
+  normalize(y_hist, y_hist, 0, 100, cv::NORM_MINMAX, -1, cv::Mat() );
+  normalize(cr_hist, cr_hist, 0, 100, cv::NORM_MINMAX, -1, cv::Mat() );
+  normalize(cb_hist, cb_hist, 0, 100, cv::NORM_MINMAX, -1, cv::Mat() );
+
   // clear vector first
   pHistVector_->clear();
-  pHistVector_->push_back(b_hist);
-  pHistVector_->push_back(g_hist);
-  pHistVector_->push_back(r_hist);
-
+  pHistVector_->push_back(cr_hist);
+  pHistVector_->push_back(cb_hist);
   return pHistVector_;
 }
 

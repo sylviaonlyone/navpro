@@ -229,15 +229,17 @@ void navproCore::probe()
         p_histogram_ = pTracker->roadColorDetect();
         for(int i = 0 ;i <256;i++)
         {
-            std::cout<<"r:"<<(*p_histogram_)[2].at<float>(i);
-            std::cout<<" g:"<<(*p_histogram_)[1].at<float>(i);
-            std::cout<<" b:"<<(*p_histogram_)[0].at<float>(i);
+            //std::cout<<"r:"<<(*p_histogram_)[2].at<float>(i);
+            //std::cout<<" g:"<<(*p_histogram_)[1].at<float>(i);
+            //std::cout<<" b:"<<(*p_histogram_)[0].at<float>(i);
+            std::cout<<"cr:"<<(*p_histogram_)[0].at<float>(i);
+            std::cout<<" cb:"<<(*p_histogram_)[1].at<float>(i);
             std::cout<<std::endl;
         }
 
         QRgb p;
         int gray;
-        float r, g,b;
+        float r, g,b,cr,cb;
         int width = p_image_origin_->width();
         int height = p_image_origin_->height();
 
@@ -248,10 +250,13 @@ void navproCore::probe()
             for(int y = 0; y < height; y++)
             {
                 p = p_image_origin_->pixel(x, y);
-                b = (*p_histogram_)[0].at<float>(qBlue(p))/100.0;
-                g = (*p_histogram_)[1].at<float>(qGreen(p))/100.0;
-                r = (*p_histogram_)[2].at<float>(qRed(p))/100.0;
-                array[x][y] = r*g*b;
+                //b = (*p_histogram_)[0].at<float>(qBlue(p))/100.0;
+                //g = (*p_histogram_)[1].at<float>(qGreen(p))/100.0;
+                //r = (*p_histogram_)[2].at<float>(qRed(p))/100.0;
+                cb = (*p_histogram_)[1].at<float>(RGB2CB(p))/100.0;
+                cr = (*p_histogram_)[0].at<float>(RGB2CR(p))/100.0;
+                //array[x][y] = r*g*b;
+                array[x][y] = cr*cb;
                 if (array[x][y] > max) max = array[x][y];
             }
         }
