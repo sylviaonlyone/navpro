@@ -34,13 +34,14 @@ laneTracker::~laneTracker()
 int laneTracker::preprocess(const char* path)
 {
   cv::Mat dstRGB;
-  //const char* window_name = "Edge Map";
   src_ = cv::imread(path);
   if (!src_.data)
   {
     std::cerr<<"src image NULL Error!";
     return -1;
   }
+
+  cv::resize(src_, src_, cv::Size(FRAME_WIDTH, FRAME_HEIGHT));
 
   std::cout<<"image size:"<<src_.size()<<" type:"<<src_.type()<<std::endl;
 

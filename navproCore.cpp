@@ -214,7 +214,8 @@ void navproCore::probe()
         *p_image_edge_ = OPENCV_TO_QT_RGB888(cv_edge_);
 
         assert(pFilter);
-        pFilter->measurementUpdate(*p_image_edge_);
+        bool isEdge = true;
+        pFilter->measurementUpdate(*p_image_edge_, isEdge);
  
         //detect lane marker
         cv_maker_ = pTracker->laneMarkerDetect();
@@ -222,7 +223,8 @@ void navproCore::probe()
         //set color table used for 8-bits image
         p_image_marker_->setColorTable(colorTable);
 
-        pFilter->measurementUpdate(*p_image_marker_);
+        isEdge = false;
+        pFilter->measurementUpdate(*p_image_marker_, isEdge);
 
         //detect color
         //array stores R,G,B probabilities

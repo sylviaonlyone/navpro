@@ -65,13 +65,14 @@ void particleFilter::measurementUpdate(const std::vector<Mat>& rgbHistogram, con
     }
 }
 
-void particleFilter::measurementUpdate(const QImage& edges)
+void particleFilter::measurementUpdate(const QImage& edges, bool isEdge)
 {
     int height = edges.height();
     int width  = edges.width();
     int dist;
     int i,j,k;
     float prob;
+    float *updateProb;
     for(i = 0; i < width; ++i)
     {
         for(j = height/2; j < height; ++j)
@@ -80,19 +81,33 @@ void particleFilter::measurementUpdate(const QImage& edges)
             {
                 for(k = 0; k < NUMBER_OF_PARTICLES; ++k)
                 {
+                    //check particle filter is in this image
+                    if (pMeasureArray[k].x > width || pMeasureArray[k].y > height)
+                      continue;
+
                     dist = Distance(pMeasureArray[k].x, pMeasureArray[k].y, i, j);
                     prob = Gaussian(dist, globleNoise, 0);
-                    if (prob > pMeasureArray[k].probabilityEdge)
+                    if (isEdge)
                     {
-                       pMeasureArray[k].probabilityEdge = prob;
+                      updateProb = &(pMeasureArray[k].probabilityEdge);
+                    }
+                    else
+                    {
+                      //update lane marker cue
+                      updateProb = &(pMeasureArray[k].probabilityMarker);
+                    }
+
+                    if (prob > *updateProb)
+                    {
+                       *updateProb = prob;
                     //std::cout<<"X1 "<<pMeasureArray[k].x<<" Y1 "<<pMeasureArray[k].y<<" X2 "
                     //  <<i<<" Y2 "<<j<<" dist  "<<dist<<std::endl;
                     //std::cout<<"dist from "<<pMeasureArray[k].x<<" "<<pMeasureArray[k].y<<" is:"<<dist;
                     //std::cout<<" prob:"<<pMeasureArray[k].probabilityEdge<<std::endl;
                     }
-                }
-            }
-        }
+                }//for(k = 0; k < NUMBER_OF_PARTICLES; ++k)
+            }//if (QColor(edges.pixel(i, j)) != QColor(Qt::black))
+        }//for(j = height/2; j < height; ++j)
     }
     printParticles("Measure update");
 }

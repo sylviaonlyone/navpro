@@ -48,8 +48,8 @@ struct measurement
   float probabilityNonRoad;
 
   measurement()
-    : x(randomInt(0, 1600)),
-    y(randomInt(600, 1200)),
+    : x(randomInt(0, FRAME_WIDTH)),
+    y(randomInt(0, FRAME_HEIGHT)),
     probabilityEdge(0.0),
     probabilityMarker(0.0),
     probabilityRoad(0.0),
@@ -82,7 +82,7 @@ class particleFilter
     // update road color cue
     void measurementUpdate(const std::vector<cv::Mat>& rgbHistogram, const QImage& rawImage);
     // update road edge cue
-    void measurementUpdate(const QImage&);
+    void measurementUpdate(const QImage&, bool isEdge);
     const M_Prob* getParticles() { return pMeasureArray;}
     void move(const int pixels);
 

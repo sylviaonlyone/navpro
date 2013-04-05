@@ -17,6 +17,8 @@ class inputManager
     bool getNextImage(QImage& image);
     bool getNextImagePath(QString& path);
   private:
+    void scale(QImage& image);
+
     //support file list in a Dir
     QStringList image_list_;
     QString input_path_;

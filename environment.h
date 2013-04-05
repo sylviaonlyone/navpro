@@ -19,6 +19,10 @@
 #include <math.h>
 #include <QtGlobal>
 
+//default frame size is 640x480
+#define FRAME_WIDTH  640
+#define FRAME_HEIGHT 480
+
 // Create road rectangle from image width, height
 // Return down-half of image
 //   (0, 0)  +------------+

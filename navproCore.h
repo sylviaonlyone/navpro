@@ -38,10 +38,6 @@
 
 class navproCore : public QWidget
 {
-  static const int DEFAULT_WIDTH = 1600;
-  static const int DEFAULT_FULL_WIDTH = 1200;
-  static const int DEFAULT_HEIGHT = 1200;
-
   // 10% of pixels from center will be accounted as sample
   static const int DEFAULT_SAMPLING_RANGE_PERCENTAGE = 10;
 

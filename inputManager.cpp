@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 #include <QDir>
 #include "inputManager.h"
@@ -21,6 +22,7 @@ bool inputManager::getCurrentImage(QImage& image)
     {
         std::cout<<"image:"<<QString(input_path_ + image_list_[cur_image_]).toAscii().data()<<std::endl;
         image.load(input_path_ + image_list_[cur_image_]);
+        scale(image);
         retValue =  true;
     }
     return retValue;
@@ -44,6 +46,7 @@ bool inputManager::getNextImage(QImage& image)
     if (image_list_.size() > 0 && cur_image_ < image_list_.size())
     {
         image.load(input_path_ + image_list_[cur_image_]);
+        scale(image);
         retValue =  true;
         cur_image_++;
     }
@@ -60,4 +63,11 @@ bool inputManager::getNextImagePath(QString& path)
         retValue =  true;
     }
     return retValue;
+}
+
+void inputManager::scale(QImage& image)
+{
+  //do scaling with given height
+  assert(FRAME_WIDTH > 0);
+  image = image.scaledToWidth(FRAME_WIDTH);
 }
