@@ -65,6 +65,18 @@ bool inputManager::getNextImagePath(QString& path)
     return retValue;
 }
 
+bool inputManager::next()
+{
+    bool retValue = false;
+
+    if (image_list_.size() > 0 && cur_image_ < image_list_.size())
+    {
+        retValue =  true;
+        cur_image_++;
+    }
+    return retValue;
+}
+
 void inputManager::scale(QImage& image)
 {
   //do scaling with given height

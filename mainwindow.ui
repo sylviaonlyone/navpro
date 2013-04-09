@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>mainwindow</class>
- <widget class="QWidget" name="mainwindow">
+ <class>MainWindow</class>
+ <widget class="QWidget" name="MainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -91,6 +91,12 @@
     <enum>Qt::Vertical</enum>
    </property>
   </widget>
+  <zorder>marker</zorder>
+  <zorder>origin</zorder>
+  <zorder>edge</zorder>
+  <zorder>color</zorder>
+  <zorder>hline_</zorder>
+  <zorder>vline_</zorder>
  </widget>
  <resources/>
  <connections/>

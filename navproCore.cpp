@@ -17,7 +17,6 @@
 ===============================================================================
 **/
 
-#include <cassert>
 #include <QDir>
 #include "navproCore.h"
 
@@ -216,6 +215,7 @@ void navproCore::probe()
         assert(pFilter);
         bool isEdge = true;
         pFilter->measurementUpdate(*p_image_edge_, isEdge);
+        pFilter->resample();
  
         //detect lane marker
         cv_maker_ = pTracker->laneMarkerDetect();
@@ -311,7 +311,9 @@ void navproCore::probe()
 void navproCore::move()
 {
     //assume velocity is 1m/s, on image, every step move 40 pixles on Y
-    pFilter->move(40);
+    //pFilter->move(40);
+    if (p_input_manager_->next())
+      probe();
 }
 
 bool navproCore::singalFilter(QRgb clr)

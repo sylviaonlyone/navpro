@@ -16,6 +16,7 @@ class inputManager
 
     bool getNextImage(QImage& image);
     bool getNextImagePath(QString& path);
+    bool next();
   private:
     void scale(QImage& image);
 

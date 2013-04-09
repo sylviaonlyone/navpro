@@ -16,6 +16,7 @@
 #ifndef NAVPRO_CORE_H_
 #define NAVPRO_CORE_H_
 
+#include <cassert>
 #include <QtGui>
 #include <QApplication>
 //#include <cstdio>
@@ -69,6 +70,12 @@ public:
   QImage* getEdgeImage() const {return p_image_edge_;};
   QImage* getMarkerImage() const {return p_image_marker_;};
   QImage* getColorImage() const {return p_image_color_;};
+
+  const M_Prob* getParticles()
+  {
+    assert(pFilter);
+    return pFilter->getParticles();
+  }
 
 protected:
   void paintEvent(QPaintEvent *event);
