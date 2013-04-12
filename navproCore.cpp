@@ -30,22 +30,13 @@
                 CV_IMAGE.cols, CV_IMAGE.rows, \
                 QImage::Format_Indexed8))
 
-navproCore::navproCore(laneTracker* tracker, particleFilter* filter, inputManager* input):
-    hueFrom(20),
-    hueTo(200),
-    saturationFrom(5),
-    saturationTo(80),
-    cbFrom(140),
-    cbTo(165),
-    crFrom(130),
-    crTo(155),
-    activeFrom(&hueFrom),
-    activeTo(&hueTo),
-    active(HUE),
+navproCore::navproCore(laneTracker* tracker, inputManager* input):
     pTracker(tracker),
-    pFilter(filter),
     p_input_manager_(input),
     p_histogram_(NULL),
+    p_particle_edge_(NULL),
+    p_particle_marker_(NULL),
+    p_particle_color_(NULL),
     p_image_origin_(NULL),
     p_image_edge_(NULL),
     p_image_marker_(NULL),
@@ -57,6 +48,10 @@ navproCore::navproCore(laneTracker* tracker, particleFilter* filter, inputManage
         p_image_edge_ = new QImage();
         p_image_marker_ = new QImage();
         p_image_color_ = new QImage();
+
+        p_particle_edge_ = new particleFilter();
+        p_particle_marker_ = new particleFilter();
+        p_particle_color_ = new particleFilter();
     }
     catch (std::bad_alloc&)
     {
@@ -72,10 +67,13 @@ navproCore::navproCore(laneTracker* tracker, particleFilter* filter, inputManage
 
 navproCore::~navproCore()
 {
-  delete p_image_origin_;
-  delete p_image_edge_;
-  delete p_image_marker_;
-  delete p_image_color_;
+    delete p_image_origin_;
+    delete p_image_edge_;
+    delete p_image_marker_;
+    delete p_image_color_;
+    delete p_particle_edge_;
+    delete p_particle_marker_;
+    delete p_particle_color_;
 }
 
 void navproCore::paintEvent(QPaintEvent *event)
@@ -195,89 +193,96 @@ void navproCore::probe()
     assert(p_image_marker_);
     assert(p_image_color_);
 
-    if (p_input_manager_->getCurrentImage(*p_image_origin_))
+    //current image must return true
+    assert(p_input_manager_->getCurrentImage(*p_image_origin_));
+
+    //process input image
+    QString path;
+ 
+    //get current image path
+    p_input_manager_->getCurrentImagePath(path);
+ 
+    int error = pTracker->preprocess(path.toAscii().data());
+    assert(!error);
+
+    //detect edge
+    cv_edge_ = pTracker->edgeDetect();
+ 
+    *p_image_edge_ = OPENCV_TO_QT_RGB888(cv_edge_);
+
+    assert(p_particle_edge_);
+    std::cout<<"edge------------------------------>"<<std::endl;
+    p_particle_edge_->measurementUpdate(*p_image_edge_);
+    p_particle_edge_->resample();
+ 
+    //detect lane marker
+    cv_maker_ = pTracker->laneMarkerDetect();
+    *p_image_marker_ = OPENCV_TO_QT_INDEX8(cv_maker_);
+    //set color table used for 8-bits image
+    p_image_marker_->setColorTable(colorTable);
+
+    assert(p_particle_marker_);
+    std::cout<<"marker------------------------------>"<<std::endl;
+    p_particle_marker_->measurementUpdate(*p_image_marker_);
+    p_particle_marker_->resample();
+
+    //detect color
+    //array stores R,G,B probabilities
+    p_histogram_ = pTracker->roadColorDetect();
+    //for(int i = 0 ;i <256;i++)
+    //{
+    //    //std::cout<<"r:"<<(*p_histogram_)[2].at<float>(i);
+    //    //std::cout<<" g:"<<(*p_histogram_)[1].at<float>(i);
+    //    //std::cout<<" b:"<<(*p_histogram_)[0].at<float>(i);
+    //    std::cout<<"cr:"<<(*p_histogram_)[0].at<float>(i);
+    //    std::cout<<" cb:"<<(*p_histogram_)[1].at<float>(i);
+    //    std::cout<<std::endl;
+    //}
+
+    QRgb p;
+    int gray;
+    float r, g,b,cr,cb;
+    int width = p_image_origin_->width();
+    int height = p_image_origin_->height();
+
+    float array[width][height];
+    float max = 0.0;
+    for(int x = 0; x < width; x++)
     {
-        //process input image
-        QString path;
- 
-        //get current image path
-        p_input_manager_->getCurrentImagePath(path);
- 
-        //feed image pat hto lane tracker
-        int error = pTracker->preprocess(path.toAscii().data());
-        assert(!error);
-
-        //detect edge
-        cv_edge_ = pTracker->edgeDetect();
- 
-        *p_image_edge_ = OPENCV_TO_QT_RGB888(cv_edge_);
-
-        assert(pFilter);
-        bool isEdge = true;
-        pFilter->measurementUpdate(*p_image_edge_, isEdge);
-        pFilter->resample();
- 
-        //detect lane marker
-        cv_maker_ = pTracker->laneMarkerDetect();
-        *p_image_marker_ = OPENCV_TO_QT_INDEX8(cv_maker_);
-        //set color table used for 8-bits image
-        p_image_marker_->setColorTable(colorTable);
-
-        isEdge = false;
-        pFilter->measurementUpdate(*p_image_marker_, isEdge);
-
-        //detect color
-        //array stores R,G,B probabilities
-        p_histogram_ = pTracker->roadColorDetect();
-        for(int i = 0 ;i <256;i++)
+        for(int y = 0; y < height; y++)
         {
-            //std::cout<<"r:"<<(*p_histogram_)[2].at<float>(i);
-            //std::cout<<" g:"<<(*p_histogram_)[1].at<float>(i);
-            //std::cout<<" b:"<<(*p_histogram_)[0].at<float>(i);
-            std::cout<<"cr:"<<(*p_histogram_)[0].at<float>(i);
-            std::cout<<" cb:"<<(*p_histogram_)[1].at<float>(i);
-            std::cout<<std::endl;
-        }
-
-        QRgb p;
-        int gray;
-        float r, g,b,cr,cb;
-        int width = p_image_origin_->width();
-        int height = p_image_origin_->height();
-
-        float array[width][height];
-        float max = 0.0;
-        for(int x = 0; x < width; x++)
-        {
-            for(int y = 0; y < height; y++)
-            {
-                p = p_image_origin_->pixel(x, y);
-                //b = (*p_histogram_)[0].at<float>(qBlue(p))/100.0;
-                //g = (*p_histogram_)[1].at<float>(qGreen(p))/100.0;
-                //r = (*p_histogram_)[2].at<float>(qRed(p))/100.0;
-                cb = (*p_histogram_)[1].at<float>(RGB2CB(p))/100.0;
-                cr = (*p_histogram_)[0].at<float>(RGB2CR(p))/100.0;
-                //array[x][y] = r*g*b;
-                array[x][y] = cr*cb;
-                if (array[x][y] > max) max = array[x][y];
-            }
-        }
-        std::cout<<"max:"<<max<<std::endl;
-
-        *p_image_color_ = QImage (width, height, QImage::Format_RGB888);
-        p_image_color_->fill(0);
-
-        for(int x = 0; x < width; x++)
-        {
-            for(int y = 0; y < height; y++)
-            {
-              array[x][y] = array[x][y]/max;
-              gray = array[x][y] * 255;
-              assert(gray >=0 && gray < 256);
-              p_image_color_->setPixel(x, y, qRgb(gray, gray, gray));
-            }
+            p = p_image_origin_->pixel(x, y);
+            //b = (*p_histogram_)[0].at<float>(qBlue(p))/100.0;
+            //g = (*p_histogram_)[1].at<float>(qGreen(p))/100.0;
+            //r = (*p_histogram_)[2].at<float>(qRed(p))/100.0;
+            cb = (*p_histogram_)[1].at<float>(RGB2CB(p))/100.0;
+            cr = (*p_histogram_)[0].at<float>(RGB2CR(p))/100.0;
+            //array[x][y] = r*g*b;
+            array[x][y] = cr*cb;
+            if (array[x][y] > max) max = array[x][y];
         }
     }
+    std::cout<<"max:"<<max<<std::endl;
+
+    *p_image_color_ = QImage (width, height, QImage::Format_RGB888);
+    p_image_color_->fill(0);
+
+    for(int x = 0; x < width; x++)
+    {
+        for(int y = 0; y < height; y++)
+        {
+          array[x][y] = array[x][y]/max;
+          gray = array[x][y] * 255;
+          assert(gray >=0 && gray < 256);
+          p_image_color_->setPixel(x, y, qRgb(gray, gray, gray));
+        }
+    }
+
+    assert(p_particle_color_);
+    bool grayImage = true;
+    std::cout<<"color------------------------------>"<<std::endl;
+    p_particle_color_->measurementUpdate(*p_image_color_, grayImage);
+    p_particle_color_->resample();
 
 #if 0
     //if(pTracker->preprocess(path.toAscii().data()) == -1)
@@ -312,212 +317,32 @@ void navproCore::move()
 {
     //assume velocity is 1m/s, on image, every step move 40 pixles on Y
     //pFilter->move(40);
-    if (p_input_manager_->next())
+    //if (p_input_manager_->next())
       probe();
 }
 
-bool navproCore::singalFilter(QRgb clr)
+const M_Prob* navproCore::getParticles(int type)
 {
-    bool display = false;
-
-    QColor hsv = QColor::fromRgb(clr);
-    int cb = RGB2CB(clr);
-    int cr = RGB2CR(clr);
-    //std::cout<<"HSV:hue: "<<hsv.hue()<<std::endl;
-    switch (active)
-    {
-      case HUE:
-        {
-            if (hsv.hue() >= hueFrom && hsv.hue()<=hueTo)
-              display = true;
-        }
-        break;
-      case SATURATION:
-        {
-            if (hsv.saturation() >= saturationFrom && hsv.saturation()<=saturationTo)
-              display = true;
-        }
-        break;
-      case CB:
-        {
-            if (cb >= cbFrom && cb<=cbTo)
-              display = true;
-        }
-        break;
-      case CR:
-        {
-            if (cr >= crFrom && cr<=crTo)
-              display = true;
-        }
-        break;
-    }
-
-    return display;
-}
-
-bool navproCore::multiFilters(QRgb clr)
-{
-    //bool display = true;
-
-    QColor hsv = QColor::fromRgb(clr);
-    int cb = RGB2CB(clr);
-    int cr = RGB2CR(clr);
-    //ord: 1. saturation 2. cb/cr 3.hue
-
-    if (hsv.saturation() < saturationFrom || hsv.saturation() > saturationTo)
-    {
-      //display = false;
-      return false;
-    }
-   
-    if (cb < cbFrom || cb > cbTo)
-    {
-      return false;
-    }
-
-    if (cr < crFrom || cr > crTo)
-    {
-      return false;
-    }
-
-    if (hsv.hue() < hueFrom || hsv.hue() > hueTo)
-    {
-      return false;
-    }
-
-    return true;
+  particleFilter *p;
+  switch (type)
+  {
+      case particleFilter::EDGE:
+        p = p_particle_edge_;
+      break;
+      case particleFilter::LANE_MARKER:
+        p = p_particle_marker_;
+      break;
+      case particleFilter::COLOR:
+        p = p_particle_color_;
+      break;
+      default:
+        p = NULL;
+      break;
+  }
+  return p ? p->getParticles() : NULL;
 }
 
 #if 0
-void navproCore::changeThresholdFrom(const int threshold)
-{
-  // Change threshold
-  setHueFrom(threshold);
-  
-  // Select the same image again
-  emit update();
-}
-
-void navproCore::changeThresholdTo(const int threshold)
-{
-
-  // Change threshold
-  setHueTo(threshold);
-  
-  // Select the same image again
-  emit update();
-}
-void navproCore::getRange()
-{
-    //int centerX = int(image.width() * DEFAULT_X_PROPOTION);
-    //int centerY = int(image.height() * DEFAULT_Y_PROPOTION);
-
-    // a square around center, size is 10% of image
-    //int startX, startY, rangeX, rangeY;
-    int rangeX, rangeY;
-
-    rangeX = image.width() * DEFAULT_SAMPLING_RANGE_PERCENTAGE/100;
-    rangeY = image.height() * DEFAULT_SAMPLING_RANGE_PERCENTAGE/100;
-
-    //startX = centerX - rangeX;
-    //startY = centerY - rangeY;
-
-    //std::cout<<"image: ("<<image.width()<<" "<<image.height()<<")"<<std::endl; 
-    //std::cout<<"center: ("<<centerX<<" "<<centerY<<")"<<std::endl; 
-    //std::cout<<"start: ("<<startX<<" "<<startY<<")"<<std::endl; 
-
-    int i, j;
-    QColor hsv;
-    int cb,cr,saturation,hue;
-    int SDcb,SDcr,SDsaturation,SDhue;
-    int hueLow,hueHigh;
-    int satLow,satHigh;
-    int cbLow,cbHigh;
-    int crLow,crHigh;
-
-    hueLow=hueHigh=0;
-    satLow=satHigh=0;
-    cbLow=cbHigh=0;
-    crLow=crHigh=0;
-
-    cb=cr=saturation=hue=0;
-
-    //maxiumal the ranges 
-    hueLow  = 359;
-    hueHigh = 0;
-    
-    satLow  = 255;
-    satHigh = 0;
-    
-    cbLow  = 255;
-    cbHigh = 0;
-    
-    crLow  = 255;
-    crHigh = 0;
-
-    
-    for (i = posX; i < rangeX + posX; ++i)
-    {
-        for (j = posY; j < rangeY + posY; ++j)
-        {
-            hsv = QColor::fromRgb(image.pixel(i,j));
-
-            if (hsv.hue() > 0 && hsv.hue() < 360) hue += hsv.hue();
-            if (hsv.saturation() > 0 && hsv.saturation() <= 255) saturation += hsv.saturation();
-
-            cb += RGB2CB(image.pixel(i,j));
-            cr += RGB2CR(image.pixel(i,j));
-
-            if (hsv.hue() < hueLow && hsv.hue() > 0) hueLow = hsv.hue();
-            if (hsv.hue() > hueHigh) hueHigh = hsv.hue();
-
-            if (hsv.saturation() < satLow) satLow = hsv.saturation();
-            if (hsv.saturation() > satHigh) satHigh = hsv.saturation();
-
-            if (RGB2CB(image.pixel(i,j)) < cbLow) cbLow = RGB2CB(image.pixel(i,j));
-            if (RGB2CB(image.pixel(i,j)) > cbHigh) cbHigh = RGB2CB(image.pixel(i,j));
-
-            if (RGB2CR(image.pixel(i,j)) < crLow) crLow = RGB2CR(image.pixel(i,j));
-            if (RGB2CR(image.pixel(i,j)) > crHigh) crHigh = RGB2CR(image.pixel(i,j));
-        }
-    }
-   
-    getStdDeviation(rangeX, rangeY, &SDhue, &SDsaturation, &SDcb, &SDcr);
-    std::cout<<"Hue H: "<<hueHigh<<" L: "<<hueLow<<"  AVE: "<<hue/(rangeX*rangeY)<<" SD: "<<SDhue<<std::endl; 
-    std::cout<<"Sat H: "<<satHigh<<" L: "<<satLow<<" AVE: "<<saturation/(rangeX*rangeY)<<" SD: "<<SDsaturation<<std::endl; 
-    std::cout<<"Cb  H: "<<cbHigh<<" L: "<<cbLow<<" AVE: "<<cb/(rangeX*rangeY)<<" SD: "<<SDcb<<std::endl; 
-    std::cout<<"Cr  H: "<<crHigh<<" L: "<<crLow<<" AVE: "<<cr/(rangeX*rangeY)<<" SD: "<<SDcr<<std::endl; 
-
-    // using standard deviation as range, as I assume targe road has normal distribution
-    // hue
-    hueFrom = hue/(rangeX*rangeY) - SDhue;
-    hueTo = hue/(rangeX*rangeY) + SDhue;
-    if (hueFrom < 1) hueFrom = 1;
-    if (hueTo > 359) hueTo   = 359;
-    //std::cout<<"AVE HUE From: "<<hueFrom<<" To: "<<hueTo<<std::endl; 
-
-    // saturation
-    saturationFrom = saturation/(rangeX * rangeY) - SDsaturation;
-    saturationTo = saturation/(rangeX * rangeY) + SDsaturation;
-    if (saturationFrom < 1) saturationFrom = 1;
-    if (saturationTo > 255) saturationTo   = 255;
-    //std::cout<<"AVE SAT From: "<<saturationFrom<<" To: "<<saturationTo <<std::endl; 
-
-    //Cb
-    cbFrom = cb/(rangeX * rangeY) - SDcb;
-    cbTo = cb/(rangeX * rangeY) + SDcb;
-    //std::cout<<"AVE Cb From: "<<cbFrom<<" To: "<<cbTo <<std::endl; 
-    if (cbFrom < 130) cbFrom = 130;
-    if (cbTo > 170) cbTo   = 170;
-
-    //Cr
-    crFrom = cr/(rangeX * rangeY) - SDcr;
-    crTo = cr/(rangeX * rangeY) + SDcr;
-    if (crFrom < 130) crFrom = 130;
-    if (crTo > 160) crTo   = 160;
-    //std::cout<<"AVE Cr From: "<<crFrom<<" To: "<<crTo <<std::endl; 
-}
-
 bool navproCore::getStdDeviation(int rangeX, int rangeY, int *hue, int *sat, int *cb, int *cr)
 {
     QColor hsv;
@@ -588,52 +413,6 @@ void navproCore::keyPressEvent(QKeyEvent * e)
 {
     switch(e->key())
     {
-      //Left/Right for hue from
-      //Up/Down for hue to
-      case Qt::Key_Left:
-        break;
-      case Qt::Key_Down:
-        break;
-      case Qt::Key_Right:
-        break;
-      case Qt::Key_Up:
-        break;
-      case Qt::Key_S:
-        {
-          std::cout<<"SAT ";
-          break;
-        }
-      case Qt::Key_U:
-        {
-          std::cout<<"HUE ";
-          break;
-        }
-      case Qt::Key_B:
-        {
-          std::cout<<"CB ";
-          break;
-        }
-      case Qt::Key_R:
-        {
-          std::cout<<"CR ";
-          break;
-        }
-      case Qt::Key_H:
-        {
-          break;
-        }
-      case Qt::Key_L:
-        {
-          break;
-        }
-      case Qt::Key_J:
-        {
-          break;
-        }
-      case Qt::Key_K:
-        {
-          break;
-        }
       case Qt::Key_N:
        {
         //static int cur = 0;

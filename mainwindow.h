@@ -52,6 +52,8 @@ class mainwindow : public QWidget
 public:
     mainwindow(navproCore *core, QWidget *parent = 0);
     ~mainwindow();
+
+    const M_Prob* getParticles(int type){ return p_Core_->getParticles(type);}
     
 protected:
     void keyPressEvent(QKeyEvent * e);
@@ -60,12 +62,13 @@ private:
     class widgetParticle : public QWidget
     {
       public:
-        widgetParticle(QWidget *parent, const M_Prob* pArray);
+        widgetParticle(mainwindow *parent);
         ~widgetParticle();
       protected:
         void paintEvent(QPaintEvent *event);
       private:
-        const M_Prob *p_particle_array_;
+        void paintParticles(const M_Prob* prob, int offset_x, int offset_y);
+        mainwindow *p_parent_;
     };
     void updateUi();
 

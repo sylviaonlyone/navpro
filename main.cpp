@@ -33,10 +33,9 @@ int main(int argc, char *argv[])
 
     //opencv image processing class
     laneTracker tracker;
-    particleFilter filter;
     inputManager input(path);
 
-    navproCore core(&tracker, &filter, &input);
+    navproCore core(&tracker, &input);
 
     //main window should know core for display
     mainwindow window(&core);

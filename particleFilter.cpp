@@ -65,19 +65,18 @@ void particleFilter::measurementUpdate(const std::vector<Mat>& rgbHistogram, con
     }
 }
 
-void particleFilter::measurementUpdate(const QImage& edges, bool isEdge)
+void particleFilter::measurementUpdate(const QImage& image, bool grayImage)
 {
-    int height = edges.height();
-    int width  = edges.width();
+    int height = image.height();
+    int width  = image.width();
     int dist;
     int i,j,k;
     float prob;
-    float *updateProb;
     for(i = 0; i < width; ++i)
     {
         for(j = height/2; j < height; ++j)
         {
-            if (QColor(edges.pixel(i, j)) != QColor(Qt::black))
+            if (QColor(image.pixel(i, j)) != QColor(Qt::black))
             {
                 for(k = 0; k < NUMBER_OF_PARTICLES; ++k)
                 {
@@ -87,26 +86,16 @@ void particleFilter::measurementUpdate(const QImage& edges, bool isEdge)
 
                     dist = Distance(pMeasureArray[k].x, pMeasureArray[k].y, i, j);
                     prob = Gaussian(dist, globleNoise, 0);
-                    if (isEdge)
+                    if (prob > pMeasureArray[k].probability)
                     {
-                      updateProb = &(pMeasureArray[k].probabilityEdge);
-                    }
-                    else
-                    {
-                      //update lane marker cue
-                      updateProb = &(pMeasureArray[k].probabilityMarker);
-                    }
-
-                    if (prob > *updateProb)
-                    {
-                       *updateProb = prob;
+                       pMeasureArray[k].probability = prob;
                     //std::cout<<"X1 "<<pMeasureArray[k].x<<" Y1 "<<pMeasureArray[k].y<<" X2 "
                     //  <<i<<" Y2 "<<j<<" dist  "<<dist<<std::endl;
                     //std::cout<<"dist from "<<pMeasureArray[k].x<<" "<<pMeasureArray[k].y<<" is:"<<dist;
                     //std::cout<<" prob:"<<pMeasureArray[k].probabilityEdge<<std::endl;
                     }
                 }//for(k = 0; k < NUMBER_OF_PARTICLES; ++k)
-            }//if (QColor(edges.pixel(i, j)) != QColor(Qt::black))
+            }//if (QColor(image.pixel(i, j)) != QColor(Qt::black))
         }//for(j = height/2; j < height; ++j)
     }
     printParticles("Measure update");
@@ -130,8 +119,8 @@ void particleFilter::resample()
     int i;
     for(i = 0; i < NUMBER_OF_PARTICLES; ++i)
     {
-        if (pMeasureArray[i].probabilityEdge > maxProb )
-          maxProb = pMeasureArray[i].probabilityEdge;
+        if (pMeasureArray[i].probability > maxProb )
+          maxProb = pMeasureArray[i].probability;
     }
 
     //std::cout<<"maxProb: "<<maxProb<<std::endl;
@@ -142,9 +131,9 @@ void particleFilter::resample()
         //beta += (static_cast<float>(randomInt(0, 100))/100.0) * 2.0 * maxProb;
         //std::cout<<"index "<<index<<" beta: "<<beta;
         //std::cout<<" prob:"<<pMeasureArray[index].probabilityEdge<<std::endl;
-        while (beta > pMeasureArray[index].probabilityEdge)
+        while (beta > pMeasureArray[index].probability)
         {
-            beta -= pMeasureArray[index].probabilityEdge;
+            beta -= pMeasureArray[index].probability;
             //std::cout<<"--->reinit:"<<index<<std::endl;
 
             //this particle have to be resampled

@@ -42,18 +42,12 @@ struct measurement
 {
   unsigned int x;
   unsigned int y;
-  float probabilityEdge;
-  float probabilityMarker;
-  float probabilityRoad;
-  float probabilityNonRoad;
+  float probability;
 
   measurement()
     : x(randomInt(0, FRAME_WIDTH)),
     y(randomInt(0, FRAME_HEIGHT)),
-    probabilityEdge(0.0),
-    probabilityMarker(0.0),
-    probabilityRoad(0.0),
-    probabilityNonRoad(0.0)
+    probability(0.0)
   {
   }
 
@@ -61,10 +55,7 @@ struct measurement
   {
       this->x = M.x;
       this->y = M.y;
-      this->probabilityEdge = M.probabilityEdge;
-      this->probabilityMarker = M.probabilityMarker;
-      this->probabilityRoad = M.probabilityRoad;
-      this->probabilityNonRoad = M.probabilityNonRoad;
+      this->probability = M.probability;
       return *this;
   }
 };
@@ -76,13 +67,19 @@ class particleFilter
   public:
     const static int NUMBER_OF_PARTICLES = 1000;
 
+    enum {
+      EDGE = 0,
+      LANE_MARKER,
+      COLOR
+    };
+
     particleFilter();
     ~particleFilter();
     void resample();
     // update road color cue
     void measurementUpdate(const std::vector<cv::Mat>& rgbHistogram, const QImage& rawImage);
     // update road edge cue
-    void measurementUpdate(const QImage&, bool isEdge);
+    void measurementUpdate(const QImage&, bool grayImage = false);
     const M_Prob* getParticles() { return pMeasureArray;}
     void move(const int pixels);
 
