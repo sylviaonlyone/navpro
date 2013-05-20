@@ -8,12 +8,15 @@ QMAKE_CFLAGS += -Werror
 #QMAKE_CXXFLAGS += -Werror -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual
 
 #RESOURCES += navpro.qrc
-HEADERS += laneTracker.h \
+HEADERS += eulerTransformer.h \
+           laneTracker.h \
            inputManager.h \
            particleFilter.h \
+           point.h \
            navproCore.h \
            mainwindow.h
 SOURCES += main.cpp \
+           eulerTransformer.cpp \
            laneTracker.cpp \
            inputManager.cpp \
            particleFilter.cpp \
@@ -34,7 +37,6 @@ DEPENDPATH += INCLUDEPATH
 LIBS += -L$$CV_LIBPATH -lopencv_core -lopencv_highgui -lopencv_imgproc
 
 QMAKE_LFLAGS += -Wl,-rpath,$$CV_LIBPATH
-
 
 CONFIG += debug
 
