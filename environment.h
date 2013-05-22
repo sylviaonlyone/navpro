@@ -63,4 +63,16 @@
 #define SUCCESS 0
 #define ERROR   -1
 
+//TODO following parameters should come from camera calibration
+//focal length
+#define Focal 1.00
+
+//scaling factors in X and Y directions
+#define Fx 5.5
+#define Fy 5.5
+
+//principle point of the camera
+#define principleX 172.00
+#define principleY 107.00
+
 #endif  //NAVPRO_ENVIRONMENT_H_

@@ -9,9 +9,11 @@ QMAKE_CFLAGS += -Werror
 
 #RESOURCES += navpro.qrc
 HEADERS += eulerTransformer.h \
+           coordinateSystems.h \
            laneTracker.h \
            inputManager.h \
            particleFilter.h \
+           pinholeTransformer.h \
            point.h \
            navproCore.h \
            mainwindow.h

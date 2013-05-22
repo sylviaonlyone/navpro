@@ -101,10 +101,6 @@ struct HomoPoint3D : public Point3D
         return *this;
     }
 
-    HomoPoint3D& operator+ (const HomoPoint3D& P)
-    {
-    }
-
   private:
     float homo_;
 };
